@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 
@@ -48,18 +50,22 @@ public class AppTest {
     @Repeat(2)
     public void testUpdate() {
 
-        int i = 100;
-        while (i >= 0) {
-            Account from = getRandomAccount();
-            Account to = getRandomAccount();
-            if (from == to) {
-                continue;
-            }
+        int c = 100;
+        AtomicInteger i = new AtomicInteger(600);
+        IntStream.range(0, c).parallel().forEach(ignored ->
+        {
+            while (i.get() >= 0) {
+                Account from = getRandomAccount();
+                Account to = getRandomAccount();
+                if (from == to) {
+                    continue;
+                }
 
-            if (accountService.transfer(from.getId(), to.getId(), RandomUtils.getGtZeroRandom())) {
-                i--;
+                if (accountService.transfer(from.getId(), to.getId(), RandomUtils.getGtZeroRandom())) {
+                    i.decrementAndGet();
+                }
             }
-        }
+        });
 
         Assert.assertTrue("Oops, account must not end up with negative balance.",
                 accountRepository.getAllAccounts().stream().noneMatch(a -> a.getBalance() < 0)
