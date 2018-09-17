@@ -5,6 +5,7 @@ import com.google.common.annotations.VisibleForTesting;
 import eu.infomas.annotation.AnnotationDetector;
 import gov.va.oia.HK2Utilities.AnnotatedClasses;
 import gov.va.oia.HK2Utilities.AnnotationReporter;
+import org.elcer.accounts.utils.ExceptionUtils;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -22,7 +23,7 @@ public class AppConfig extends ResourceConfig {
         try {
             initialized.await();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            ExceptionUtils.sneakyThrow(e);
         }
 
         return SERVICE_LOCATOR;
@@ -41,7 +42,6 @@ public class AppConfig extends ResourceConfig {
 
     private void addServices(ServiceLocator serviceLocator) {
         AnnotatedClasses ac = new AnnotatedClasses();
-
 
 
         @SuppressWarnings("unchecked")
