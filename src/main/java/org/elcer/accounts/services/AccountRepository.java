@@ -28,18 +28,15 @@ public class AccountRepository {
     @VisibleForTesting
     public Account createAccount(long amount) {
         Account account = new Account(amount);
-        return wrap(em -> {
-            em.persist(account);
+        return wrap(tran -> {
+            tran.getEm().persist(account);
             return account;
         });
     }
 
 
     Transaction beginTran() {
-        EntityManager em = efFactory.createEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        transaction.begin();
-        return new Transaction(transaction, em);
+        return new Transaction(efFactory);
     }
 
     @VisibleForTesting
@@ -48,29 +45,21 @@ public class AccountRepository {
     }
 
     @SuppressWarnings("WeakerAccess")
-    List<Account> getAllAccountsWithTran(EntityManager em) {
-        checkTranActive(em, "getAllAccountsWithTran");
-
-        CriteriaBuilder builder = em.getCriteriaBuilder();
+    List<Account> getAllAccountsWithTran(Transaction tran) {
+        CriteriaBuilder builder = tran.getEm().getCriteriaBuilder();
         CriteriaQuery<Account> q = builder.createQuery(Account.class);
-        TypedQuery<Account> query = em.createQuery(q);
+        TypedQuery<Account> query = tran.getEm().createQuery(q);
         return query.getResultList();
     }
 
     public Account retrieveAccountById(long id) {
-        return wrap((Function<EntityManager, Account>)
-                em -> retrieveAccountByIdWithTran(em, id));
+        return wrap((Function<Transaction, Account>)
+                tran -> retrieveAccountByIdWithTran(tran, id));
     }
 
-    private void checkTranActive(EntityManager em, String method) {
-        if (!em.getTransaction().isActive()) {
-            throw new IllegalStateException(String.format("%s must be in transaction", method));
-        }
-    }
 
-    Account retrieveAccountByIdWithTran(EntityManager em, long id) {
-        checkTranActive(em, "retrieveAccountByIdWithTran");
-        return _retrieveAccountById(em, id);
+    Account retrieveAccountByIdWithTran(Transaction tran, long id) {
+        return _retrieveAccountById(tran.getEm(), id);
     }
 
     private Account _retrieveAccountById(EntityManager em, long id) {
@@ -86,11 +75,8 @@ public class AccountRepository {
         }
     }
 
-
-    void updateAccountWithTran(EntityManager em, long accountId, long amount) {
-        checkTranActive(em, "updateAccount");
-
-        em.createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :accountId")
+    void updateAccountWithTran(Transaction tran, long accountId, long amount) {
+        tran.getEm().createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :accountId")
                 .setParameter("amount", amount)
                 .setParameter("accountId", accountId)
                 .executeUpdate();
@@ -102,12 +88,11 @@ public class AccountRepository {
 
     @VisibleForTesting
     public void updateAccountNonAtomic(@NotNull Account account) {
-        wrap((Consumer<EntityManager>) em -> updateAccountWithNonAtomicAtTran(em, account));
+        wrap((Consumer<Transaction>) tran -> updateAccountWithNonAtomicAtTran(tran, account));
     }
 
-    void updateAccountWithNonAtomicAtTran(EntityManager em, Account account) {
-        checkTranActive(em, "updateAccountWithTran");
-        _updateAccountNonAtomic(em, account);
+    void updateAccountWithNonAtomicAtTran(Transaction tran, Account account) {
+        _updateAccountNonAtomic(tran.getEm(), account);
     }
 
     private void _updateAccountNonAtomic(EntityManager em, Account account) {
@@ -121,34 +106,31 @@ public class AccountRepository {
     }
 
 
-
     //Resource disposing
 
-    private <R> R wrap(Function<EntityManager, R> delegate) {
-        EntityManager em = efFactory.createEntityManager();
-        em.getTransaction().begin();
+    private <R> R wrap(Function<Transaction, R> delegate) {
+        Transaction tran = beginTran();
         return ExceptionUtils.wrap(delegate, () -> {
             try {
-                em.getTransaction().commit();
+                tran.commit();
             } catch (RollbackException e) {
-                em.getTransaction().rollback();
+                tran.rollback();
             }
-            em.close();
+            tran.getEm().close();
 
-        }, em);
+        }, tran);
     }
 
-    private void wrap(Consumer<EntityManager> delegate) {
-        EntityManager em = efFactory.createEntityManager();
-        em.getTransaction().begin();
+    private void wrap(Consumer<Transaction> delegate) {
+        Transaction tran = beginTran();
         ExceptionUtils.wrap(delegate, () -> {
             try {
-                em.getTransaction().commit();
+                tran.commit();
             } catch (RollbackException e) {
-                em.getTransaction().rollback();
+                tran.rollback();
             }
-            em.close();
-        }, em);
+            tran.getEm().close();
+        }, tran);
     }
 
 

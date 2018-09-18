@@ -3,6 +3,7 @@ package org.elcer.accounts.db;
 import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
 /*
@@ -11,12 +12,13 @@ import javax.persistence.EntityTransaction;
 
 public class Transaction implements AutoCloseable {
 
-    private EntityTransaction delegate;
-    private EntityManager em;
+    private final EntityTransaction delegate;
+    private final EntityManager em;
 
-    public Transaction(EntityTransaction delegate, EntityManager em) {
-        this.delegate = delegate;
-        this.em = em;
+    public Transaction(EntityManagerFactory entityManagerFactory) {
+        em = entityManagerFactory.createEntityManager();
+        delegate = em.getTransaction();
+        delegate.begin();
     }
 
     @Override
@@ -25,7 +27,7 @@ public class Transaction implements AutoCloseable {
             if (delegate.isActive()) {
                 delegate.rollback();
             }
-        }, () -> em.close());
+        }, em::close);
     }
 
     public EntityManager getEm() {
@@ -34,5 +36,9 @@ public class Transaction implements AutoCloseable {
 
     public void commit() {
         delegate.commit();
+    }
+
+    public void rollback() {
+        delegate.rollback();
     }
 }
