@@ -44,14 +44,12 @@ public class AccountRepository {
 
     @VisibleForTesting
     public List<Account> getAllAccounts() {
-        return wrap(this::_getAllAccounts);
+        return wrap(this::getAllAccountsWithTran);
     }
 
     @SuppressWarnings("WeakerAccess")
-    List<Account> _getAllAccounts(EntityManager em) {
-        if (!em.getTransaction().isActive()) {
-            throw new IllegalStateException("_getAllAccounts must be in transaction");
-        }
+    List<Account> getAllAccountsWithTran(EntityManager em) {
+        checkTranActive(em, "getAllAccountsWithTran");
 
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<Account> q = builder.createQuery(Account.class);
@@ -61,18 +59,21 @@ public class AccountRepository {
 
     public Account retrieveAccountById(long id) {
         return wrap((Function<EntityManager, Account>)
-                em -> _retrieveAccountById(em, id));
+                em -> retrieveAccountByIdWithTran(em, id));
     }
 
-    Account _retrieveAccountById(EntityManager em, long id) {
+    private void checkTranActive(EntityManager em, String method) {
         if (!em.getTransaction().isActive()) {
-            throw new IllegalStateException("_retrieveAccountById must be in transaction");
+            throw new IllegalStateException(String.format("%s must be in transaction", method));
         }
-
-        return __retrieveAccountById(em, id);
     }
 
-    private Account __retrieveAccountById(EntityManager em, long id) {
+    Account retrieveAccountByIdWithTran(EntityManager em, long id) {
+        checkTranActive(em, "retrieveAccountByIdWithTran");
+        return _retrieveAccountById(em, id);
+    }
+
+    private Account _retrieveAccountById(EntityManager em, long id) {
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<Account> q = builder.createQuery(Account.class);
         Root<Account> root = q.from(Account.class);
@@ -85,14 +86,30 @@ public class AccountRepository {
         }
     }
 
-    void updateAccount(@NotNull Account account) {
-        this.wrap((Consumer<EntityManager>) em -> _updateAccount(em, account));
+
+    void updateAccountWithTran(EntityManager em, long accountId, long amount) {
+        checkTranActive(em, "updateAccount");
+
+        em.createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :accountId")
+                .setParameter("amount", amount)
+                .setParameter("accountId", accountId)
+                .executeUpdate();
+
     }
 
-    void _updateAccount(EntityManager em, Account account) {
-        if (!em.getTransaction().isActive()) {
-            throw new IllegalStateException("_updateAccount must be in transaction");
-        }
+
+    //Non atomic methods. Use only for tests
+    @VisibleForTesting
+    public void updateAccountNonAtomic(@NotNull Account account) {
+        wrap((Consumer<EntityManager>) em -> updateAccountWithNonAtomicAtTran(em, account));
+    }
+
+    void updateAccountWithNonAtomicAtTran(EntityManager em, Account account) {
+        checkTranActive(em, "updateAccountWithTran");
+        _updateAccountNonAtomic(em, account);
+    }
+
+    private void _updateAccountNonAtomic(EntityManager em, Account account) {
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaUpdate<Account> update = builder.createCriteriaUpdate(Account.class);
         Root root = update.from(Account.class);
@@ -102,6 +119,9 @@ public class AccountRepository {
         query.executeUpdate();
     }
 
+
+
+    //Resource disposing
 
     private <R> R wrap(Function<EntityManager, R> delegate) {
         EntityManager em = efFactory.createEntityManager();
@@ -131,11 +151,4 @@ public class AccountRepository {
     }
 
 
-    void addFunds(EntityManager em, long acc, long amount) {
-        em.createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :acc")
-                .setParameter("amount", amount)
-                .setParameter("acc", acc)
-                .executeUpdate();
-
-    }
 }

@@ -32,20 +32,20 @@ public class AccountService {
             Account debitAccount;
 
             if (isFirst(from, to)) {
-                debitAccount = accountRepository._retrieveAccountById(tran.getEm(), from);
-                accountRepository._retrieveAccountById(tran.getEm(), to);
+                debitAccount = accountRepository.retrieveAccountByIdWithTran(tran.getEm(), from);
+                accountRepository.retrieveAccountByIdWithTran(tran.getEm(), to);
             } else {
-                accountRepository._retrieveAccountById(tran.getEm(), to);
-                debitAccount = accountRepository._retrieveAccountById(tran.getEm(), from);
+                accountRepository.retrieveAccountByIdWithTran(tran.getEm(), to);
+                debitAccount = accountRepository.retrieveAccountByIdWithTran(tran.getEm(), from);
             }
 
             if (debitAccount.getBalance() >= amount) {
                 if (isFirst(from, to)) {
-                    accountRepository.addFunds(tran.getEm(), from, -amount);
-                    accountRepository.addFunds(tran.getEm(), to, amount);
+                    accountRepository.updateAccountWithTran(tran.getEm(), from, -amount);
+                    accountRepository.updateAccountWithTran(tran.getEm(), to, amount);
                 } else {
-                    accountRepository.addFunds(tran.getEm(), to, amount);
-                    accountRepository.addFunds(tran.getEm(), from, -amount);
+                    accountRepository.updateAccountWithTran(tran.getEm(), to, amount);
+                    accountRepository.updateAccountWithTran(tran.getEm(), from, -amount);
                 }
 
                 tran.commit();

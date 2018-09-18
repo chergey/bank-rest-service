@@ -71,7 +71,7 @@ public class AppTest {
 
     }
 
-    private Void transfer(AtomicInteger i, Account debit, Account credit) {
+    private void transfer(AtomicInteger i, Account debit, Account credit) {
         while (i.get() >= 0) {
             try {
                 accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandom());
@@ -84,7 +84,6 @@ public class AppTest {
             }
             i.decrementAndGet();
         }
-        return null;
     }
 
 

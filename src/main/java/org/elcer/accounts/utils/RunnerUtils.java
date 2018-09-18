@@ -22,7 +22,7 @@ public class RunnerUtils {
         runServer(port, true);
     }
 
-    public static void runServer(int port, boolean join) {
+    public static void runServer(int port, boolean wait) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         Server jettyServer = new Server(port);
@@ -33,10 +33,11 @@ public class RunnerUtils {
 
         try {
             jettyServer.start();
-            if (join)
+            if (wait)
                 jettyServer.join();
         } catch (Exception e) {
             logger.error("Error in server", e);
+            ExceptionUtils.sneakyThrow(e);
         }
     }
 
@@ -56,7 +57,7 @@ public class RunnerUtils {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("app", options);
+            formatter.printHelp("bank service", options);
             System.exit(1);
             return;
         }
