@@ -10,10 +10,7 @@ import org.elcer.accounts.utils.ExceptionUtils;
 import org.jvnet.hk2.annotations.Service;
 
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.function.Consumer;
@@ -75,31 +72,25 @@ public class AccountRepository {
         }
     }
 
-    void updateAccountWithTran(Transaction tran, long accountId, long amount) {
-        tran.getEm().createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :accountId")
-                .setParameter("amount", amount)
-                .setParameter("accountId", accountId)
-                .executeUpdate();
 
+
+
+    public void updateAccount(@NotNull Account account, long balance) {
+        wrap((Consumer<Transaction>) tran -> updateAccountWithTran(tran, account, balance));
     }
 
-
-    //Non atomic methods. Use only for tests
-
-    @VisibleForTesting
-    public void updateAccountNonAtomic(@NotNull Account account) {
-        wrap((Consumer<Transaction>) tran -> updateAccountWithNonAtomicAtTran(tran, account));
+    void updateAccountWithTran(Transaction tran, Account account, long amount) {
+        _updateAccount(tran.getEm(), account, amount);
     }
 
-    void updateAccountWithNonAtomicAtTran(Transaction tran, Account account) {
-        _updateAccountNonAtomic(tran.getEm(), account);
-    }
-
-    private void _updateAccountNonAtomic(EntityManager em, Account account) {
+    private void _updateAccount(EntityManager em, Account account, long amount) {
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaUpdate<Account> update = builder.createCriteriaUpdate(Account.class);
-        Root root = update.from(Account.class);
-        update.set("balance", account.getBalance());
+        Root<Account> root = update.from(Account.class);
+        Path<Long> balancePath = root.get("balance");
+        Expression<Long> eventualBalance = builder.sum(balancePath, amount);
+        update.set(balancePath, eventualBalance);
+
         update.where(builder.equal(root.get("id"), account.getId()));
         Query query = em.createQuery(update);
         query.executeUpdate();

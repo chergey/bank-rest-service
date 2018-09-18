@@ -29,23 +29,23 @@ public class AccountService {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
 
         try (Transaction tran = accountRepository.beginTran()) {
-            Account debitAccount;
+            Account debitAccount, creditAccount;
 
             if (isFirst(from, to)) {
                 debitAccount = accountRepository.retrieveAccountByIdWithTran(tran, from);
-                accountRepository.retrieveAccountByIdWithTran(tran, to);
+                creditAccount = accountRepository.retrieveAccountByIdWithTran(tran, to);
             } else {
-                accountRepository.retrieveAccountByIdWithTran(tran, to);
+                creditAccount = accountRepository.retrieveAccountByIdWithTran(tran, to);
                 debitAccount = accountRepository.retrieveAccountByIdWithTran(tran, from);
             }
 
             if (debitAccount.getBalance() >= amount) {
                 if (isFirst(from, to)) {
-                    accountRepository.updateAccountWithTran(tran, from, -amount);
-                    accountRepository.updateAccountWithTran(tran, to, amount);
+                    accountRepository.updateAccountWithTran(tran, debitAccount, -amount);
+                    accountRepository.updateAccountWithTran(tran, creditAccount, amount);
                 } else {
-                    accountRepository.updateAccountWithTran(tran, to, amount);
-                    accountRepository.updateAccountWithTran(tran, from, -amount);
+                    accountRepository.updateAccountWithTran(tran, creditAccount, amount);
+                    accountRepository.updateAccountWithTran(tran, debitAccount, -amount);
                 }
 
                 tran.commit();
