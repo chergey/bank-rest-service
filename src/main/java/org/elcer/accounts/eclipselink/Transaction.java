@@ -5,6 +5,10 @@ import org.elcer.accounts.utils.ExceptionUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
+/*
+ Wrapper over entity transaction to safely dispose it
+ */
+
 public class Transaction implements AutoCloseable {
 
     private EntityTransaction delegate;
@@ -17,7 +21,7 @@ public class Transaction implements AutoCloseable {
 
     @Override
     public void close() {
-        ExceptionUtils.wrap(()-> {
+        ExceptionUtils.wrap(() -> {
             if (delegate.isActive()) {
                 delegate.rollback();
             }

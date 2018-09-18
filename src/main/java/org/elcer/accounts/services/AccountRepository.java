@@ -68,6 +68,11 @@ public class AccountRepository {
         if (!em.getTransaction().isActive()) {
             throw new IllegalStateException("_retrieveAccountById must be in transaction");
         }
+
+        return __retrieveAccountById(em, id);
+    }
+
+    private Account __retrieveAccountById(EntityManager em, long id) {
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<Account> q = builder.createQuery(Account.class);
         Root<Account> root = q.from(Account.class);
@@ -107,8 +112,8 @@ public class AccountRepository {
             } catch (RollbackException e) {
                 em.getTransaction().rollback();
             }
-
             em.close();
+
         }, em);
     }
 
@@ -121,10 +126,16 @@ public class AccountRepository {
             } catch (RollbackException e) {
                 em.getTransaction().rollback();
             }
-
             em.close();
         }, em);
     }
 
 
+    void addFunds(EntityManager em, long acc, long amount) {
+        em.createQuery("UPDATE Account a SET a.balance = a.balance + :amount where a.id = :acc")
+                .setParameter("amount", amount)
+                .setParameter("acc", acc)
+                .executeUpdate();
+
+    }
 }

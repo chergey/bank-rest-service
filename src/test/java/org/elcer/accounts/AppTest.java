@@ -2,6 +2,7 @@ package org.elcer.accounts;
 
 import io.restassured.response.ResponseBody;
 import org.elcer.accounts.app.AppConfig;
+import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.services.AccountRepository;
@@ -10,6 +11,7 @@ import org.elcer.accounts.utils.RandomUtils;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.given;
 
 
-@RunWith(RepeatRunner.class)
+@RunWith(RepeatableRunner.class)
 public class AppTest {
 
     private static final Logger logger = LoggerFactory.getLogger(AppTest.class);
@@ -45,15 +47,56 @@ public class AppTest {
 
     }
 
+    @Repeat(2)
+    @Test
+    public void testConcurrencyAndDeadlocks() {
+        final int times = 100;
+        AtomicInteger i = new AtomicInteger(times);
 
-    private static final int CONCURRENCY = 600;
+        Account from = accountRepository.createAccount(36000);
+        Account to = accountRepository.createAccount(31000);
 
+        long startingTotal = to.getBalance() + from.getBalance();
+
+        ExecutorUtils.runConcurrently(
+                () -> transfer(i, from, to),
+                () -> transfer(i, to, from)
+        );
+
+        Account fromEnding = accountRepository.retrieveAccountById(from.getId());
+        Account toEnding = accountRepository.retrieveAccountById(to.getId());
+
+        long endingTotal = fromEnding.getBalance() + toEnding.getBalance();
+        Assert.assertEquals(startingTotal, endingTotal);
+
+    }
+
+    private Void transfer(AtomicInteger i, Account debit, Account credit) {
+        while (i.get() >= 0) {
+            try {
+                accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandom());
+            } catch (Exception e) {
+                if (e instanceof NotEnoughFundsException) {
+                    logger.info("Not enough money left in {}, stopping", debit.getId());
+                    break;
+                }
+                throw e;
+            }
+            i.decrementAndGet();
+        }
+        return null;
+    }
+
+
+    @Ignore
     @Test
     @Repeat(2)
-    public void testUpdate() {
+    //TODO: remove
+    public void testNonNegativeBalance() {
+        final int times = 600;
 
-        AtomicInteger i = new AtomicInteger(CONCURRENCY);
-        IntStream.range(0, CONCURRENCY).parallel().forEach(ignored ->
+        AtomicInteger i = new AtomicInteger(times);
+        IntStream.range(0, times).parallel().forEach(ignored ->
         {
             while (i.get() >= 0) {
                 Account from = getRandomAccount();
@@ -107,6 +150,12 @@ public class AppTest {
         return account;
     }
 
+    private static Account getAccount(int acc) {
+        Account account = accounts.get(acc);
+        Objects.requireNonNull(account, "Account can't be null. Check your data!");
+        return account;
+    }
+
     private static Account getRandomAccountFromDb() {
         int acc = RandomUtils.getGtZeroRandom(accounts.size());
         Account account = accounts.get(acc);
@@ -114,5 +163,13 @@ public class AppTest {
         Account updatedAccount = accountRepository.retrieveAccountById(account.getId());
         return updatedAccount;
     }
+
+    private static Account getAccountFromDb(int acc) {
+        Account account = accounts.get(acc);
+        Objects.requireNonNull(account, "Account can't be null. Check your data!");
+        Account updatedAccount = accountRepository.retrieveAccountById(account.getId());
+        return updatedAccount;
+    }
+
 
 }

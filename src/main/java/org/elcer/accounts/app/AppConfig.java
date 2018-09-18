@@ -10,6 +10,8 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.jvnet.hk2.annotations.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.ApplicationPath;
@@ -17,6 +19,8 @@ import java.util.concurrent.CountDownLatch;
 
 @ApplicationPath("/")
 public class AppConfig extends ResourceConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
     @VisibleForTesting
     public static ServiceLocator getServiceLocator() {
@@ -33,7 +37,6 @@ public class AppConfig extends ResourceConfig {
     private static CountDownLatch initialized = new CountDownLatch(1);
     private static final String PACKAGE_NAME = "org.elcer.accounts";
 
-
     @Inject
     public AppConfig(ServiceLocator serviceLocator) {
         packages(PACKAGE_NAME);
@@ -43,7 +46,6 @@ public class AppConfig extends ResourceConfig {
     private void addServices(ServiceLocator serviceLocator) {
         AnnotatedClasses ac = new AnnotatedClasses();
 
-
         @SuppressWarnings("unchecked")
         AnnotationDetector cf = new AnnotationDetector(new AnnotationReporter(ac, new Class[]{Service.class}));
         Class<?>[] annotatedClasses = new Class[0];
@@ -52,7 +54,7 @@ public class AppConfig extends ResourceConfig {
             cf.detect(PACKAGE_NAME);
             annotatedClasses = ac.getAnnotatedClasses();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error while scanning packages", e);
         }
 
         ServiceLocatorUtilities.addClasses(serviceLocator, annotatedClasses);

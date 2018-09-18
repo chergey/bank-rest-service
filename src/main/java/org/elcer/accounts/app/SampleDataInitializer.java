@@ -17,16 +17,17 @@ public class SampleDataInitializer {
 
     private boolean init;
 
+    private static final int ACCOUNS_TO_CREATE = 1000;
+
     @PostConstruct
     public void init() {
         if (init) return;
         try {
-            for (int i = 1; i < 1000; i++) {
+            for (int i = 1; i < ACCOUNS_TO_CREATE; i++) {
                 accountRepository.createAccount(RandomUtils.getGtZeroRandom());
             }
         } finally {
             init = true;
-
         }
     }
 }

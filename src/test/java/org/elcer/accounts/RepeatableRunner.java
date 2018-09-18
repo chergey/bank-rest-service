@@ -8,20 +8,20 @@ import org.junit.runners.model.InitializationError;
 
 import javax.validation.constraints.NotNull;
 
-public class RepeatRunner extends BlockJUnit4ClassRunner {
-    public RepeatRunner(Class<?> klass) throws InitializationError {
+public class RepeatableRunner extends BlockJUnit4ClassRunner {
+    public RepeatableRunner(Class<?> klass) throws InitializationError {
         super(klass);
     }
 
     @Override
     protected Description describeChild(FrameworkMethod method) {
-        if(isIgnored(method) || !isRepeatable(method)) {
-         return super.describeChild(method);
+        if (isIgnored(method) || !isRepeatable(method)) {
+            return super.describeChild(method);
         }
         return describeRepeatTest(method);
     }
 
-    private Description describeRepeatTest(@NotNull  FrameworkMethod method) {
+    private Description describeRepeatTest(@NotNull FrameworkMethod method) {
         final int times = method.getAnnotation(Repeat.class).value();
 
         final Description description = Description.createSuiteDescription(
@@ -30,8 +30,7 @@ public class RepeatRunner extends BlockJUnit4ClassRunner {
 
         for (int i = 1; i <= times; i++) {
             description.addChild(Description.createTestDescription(
-                    getTestClass().getJavaClass(),
-                    "[" + i + "] " + testName(method)));
+                    getTestClass().getJavaClass(), "[" + i + "] " + testName(method)));
         }
         return description;
     }
@@ -39,7 +38,7 @@ public class RepeatRunner extends BlockJUnit4ClassRunner {
     @Override
     protected void runChild(FrameworkMethod method, RunNotifier notifier) {
         final Description descriptions = describeChild(method);
-        if(isIgnored(method) || !isRepeatable(method)) {
+        if (isIgnored(method) || !isRepeatable(method)) {
             super.runChild(method, notifier);
             return;
         }

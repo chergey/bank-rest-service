@@ -12,7 +12,7 @@ public class ExceptionUtils {
     }
 
     public static <T> void wrap(Runnable delegate, Runnable cleanup) {
-        wrap((Function<T, Object>) t -> {
+        wrap((Function<T, Object>) ignored -> {
             delegate.run();
             return null;
         }, cleanup, null);
