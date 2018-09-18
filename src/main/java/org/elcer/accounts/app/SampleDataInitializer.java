@@ -20,9 +20,13 @@ public class SampleDataInitializer {
     @PostConstruct
     public void init() {
         if (init) return;
-        for (int i = 1; i < 1000; i++) {
-            accountRepository.createAccount(RandomUtils.getGtZeroRandom());
+        try {
+            for (int i = 1; i < 1000; i++) {
+                accountRepository.createAccount(RandomUtils.getGtZeroRandom());
+            }
+        } finally {
+            init = true;
+
         }
-        init = true;
     }
 }

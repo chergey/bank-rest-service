@@ -2,6 +2,7 @@ package org.elcer.accounts.services;
 
 
 import org.elcer.accounts.eclipselink.Transaction;
+import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.hk2.CustomInject;
 import org.elcer.accounts.model.Account;
 import org.jvnet.hk2.annotations.Service;
@@ -20,7 +21,7 @@ public class AccountService {
     @CustomInject
     private Logger logger;
 
-    public boolean transfer(long from, long to, long amount) {
+    public void transfer(long from, long to, long amount) {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
         try (Transaction tran = accountRepository.beginTran()) {
             Account fromAccount = accountRepository._retrieveAccountById(tran.getEm(), from);
@@ -33,11 +34,9 @@ public class AccountService {
                 accountRepository._updateAccount(tran.getEm(), toAccount);
                 tran.commit();
             } else {
-                logger.info("Not enough money in debit account {}", from);
-                return false;
+                throw new NotEnoughFundsException(fromAccount.getId());
             }
         }
         logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
-        return true;
     }
 }

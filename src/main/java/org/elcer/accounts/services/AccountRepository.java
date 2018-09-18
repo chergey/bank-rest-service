@@ -3,6 +3,7 @@ package org.elcer.accounts.services;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.elcer.accounts.eclipselink.Transaction;
+import org.elcer.accounts.exceptions.NoAccountException;
 import org.elcer.accounts.hk2.CustomInject;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.utils.ExceptionUtils;
@@ -31,7 +32,6 @@ public class AccountRepository {
             em.persist(account);
             return account;
         });
-
     }
 
 
@@ -73,11 +73,15 @@ public class AccountRepository {
         Root<Account> root = q.from(Account.class);
         q.select(root).where(builder.equal(root.get("id"), id));
         TypedQuery<Account> query = em.createQuery(q);
-        return query.getSingleResult();
+        try {
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            throw new NoAccountException(id);
+        }
     }
 
     void updateAccount(@NotNull Account account) {
-        this.wrap( (Consumer<EntityManager>) em -> _updateAccount(em, account));
+        this.wrap((Consumer<EntityManager>) em -> _updateAccount(em, account));
     }
 
     void _updateAccount(EntityManager em, Account account) {

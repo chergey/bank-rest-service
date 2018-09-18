@@ -12,7 +12,7 @@ public class AccountResponse {
     public static AccountResponse SUCCESS = new AccountResponse("Successfully transfered funds", 0);
     public static AccountResponse ERROR_UPDATING = new AccountResponse("Error while updating funds", 2);
     public static AccountResponse NO_SUCH_ACCOUNT = new AccountResponse("No account with id", 6);
-    public static AccountResponse NOT_ENOUGH_MONEY = new AccountResponse("Not enough money ", 3);
+    public static AccountResponse NOT_ENOUGH_FUNDS = new AccountResponse("Not enough funds ", 3);
     public static AccountResponse DEBIT_ACCOUNT_IS_CREDIT_ACCOUNT = new AccountResponse("Debit account can't be credit account", 4);
     private String message;
     private int code;
@@ -24,11 +24,11 @@ public class AccountResponse {
     }
 
 
-    public AccountResponse appendMessage(String message) {
-        return appendMessage(":", message);
+    public AccountResponse append(String message) {
+        return append(":", message);
     }
 
-    public AccountResponse appendMessage(String sep, String message) {
+    public AccountResponse append(String sep, String message) {
         AccountResponse response = new AccountResponse(this.message, this.code);
         response.message += sep + " " + message;
         return this;

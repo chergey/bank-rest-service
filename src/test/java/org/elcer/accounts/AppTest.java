@@ -46,13 +46,14 @@ public class AppTest {
     }
 
 
+    private static final int CONCURRENCY = 600;
+
     @Test
     @Repeat(2)
     public void testUpdate() {
 
-        int c = 100;
-        AtomicInteger i = new AtomicInteger(600);
-        IntStream.range(0, c).parallel().forEach(ignored ->
+        AtomicInteger i = new AtomicInteger(CONCURRENCY);
+        IntStream.range(0, CONCURRENCY).parallel().forEach(ignored ->
         {
             while (i.get() >= 0) {
                 Account from = getRandomAccount();
@@ -61,9 +62,13 @@ public class AppTest {
                     continue;
                 }
 
-                if (accountService.transfer(from.getId(), to.getId(), RandomUtils.getGtZeroRandom())) {
-                    i.decrementAndGet();
+                try {
+                    accountService.transfer(from.getId(), to.getId(), RandomUtils.getGtZeroRandom());
+                } catch (Exception e) {
+                    continue;
                 }
+                i.decrementAndGet();
+
             }
         });
 

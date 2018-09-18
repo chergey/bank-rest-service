@@ -21,7 +21,6 @@ public class AccountResource {
     @Inject
     private AccountService accountService;
 
-
     @GET
     @Path("/transfer")
     public Response transfer(@QueryParam("from") long from, @QueryParam("to") long to,
@@ -33,10 +32,7 @@ public class AccountResource {
         if (amount < 0) {
             return Response.ok(AccountResponse.NEGATIVE_AMOUNT).build();
         }
-        if (!accountService.transfer(from, to, amount)) {
-            return Response.ok(AccountResponse.NOT_ENOUGH_MONEY).build();
-        }
-
+        accountService.transfer(from, to, amount);
         return Response.ok(AccountResponse.SUCCESS).build();
     }
 
