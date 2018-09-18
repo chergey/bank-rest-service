@@ -1,14 +1,8 @@
 package org.elcer.accounts.exceptions;
 
-public class NoAccountException extends RuntimeException {
-
-    private long accountId;
+public class NoAccountException extends AccountException {
 
     public NoAccountException(long accountId) {
-        this.accountId = accountId;
-    }
-
-    public long getAccountId() {
-        return accountId;
+        super(accountId);
     }
 }

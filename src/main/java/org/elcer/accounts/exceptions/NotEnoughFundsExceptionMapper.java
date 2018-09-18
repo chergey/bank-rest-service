@@ -11,7 +11,7 @@ public class NotEnoughFundsExceptionMapper implements ExceptionMapper<NotEnoughF
     @Override
     public Response toResponse(NotEnoughFundsException exception) {
         return Response.status(404)
-                .entity(AccountResponse.NOT_ENOUGH_FUNDS.append("", Long.toString(exception.getAccountId())))
+                .entity(AccountResponse.NOT_ENOUGH_FUNDS.append(Long.toString(exception.getAccountId())))
                 .build();
     }
 }
