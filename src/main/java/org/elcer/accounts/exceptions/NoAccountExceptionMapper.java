@@ -12,7 +12,7 @@ public class NoAccountExceptionMapper implements ExceptionMapper<NoAccountExcept
     @Override
     public Response toResponse(NoAccountException exception) {
         return Response.status(404)
-                .entity(AccountResponse.NO_SUCH_ACCOUNT.append(Long.toString(exception.getAccountId())))
+                .entity(AccountResponse.NO_SUCH_ACCOUNT.addAccountId(exception.getAccountId()))
                 .build();
     }
 }

@@ -1,4 +1,4 @@
-package org.elcer.accounts.eclipselink;
+package org.elcer.accounts.db;
 
 import org.eclipse.persistence.config.SessionCustomizer;
 import org.eclipse.persistence.sessions.DatabaseLogin;

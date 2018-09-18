@@ -1,4 +1,4 @@
-package org.elcer.accounts.eclipselink;
+package org.elcer.accounts.db;
 
 import org.elcer.accounts.utils.ExceptionUtils;
 

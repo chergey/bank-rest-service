@@ -2,7 +2,7 @@ package org.elcer.accounts.services;
 
 
 import com.google.common.annotations.VisibleForTesting;
-import org.elcer.accounts.eclipselink.Transaction;
+import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.NoAccountException;
 import org.elcer.accounts.hk2.CustomInject;
 import org.elcer.accounts.model.Account;
@@ -99,6 +99,7 @@ public class AccountRepository {
 
 
     //Non atomic methods. Use only for tests
+
     @VisibleForTesting
     public void updateAccountNonAtomic(@NotNull Account account) {
         wrap((Consumer<EntityManager>) em -> updateAccountWithNonAtomicAtTran(em, account));

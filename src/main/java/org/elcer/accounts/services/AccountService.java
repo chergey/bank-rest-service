@@ -1,7 +1,7 @@
 package org.elcer.accounts.services;
 
 
-import org.elcer.accounts.eclipselink.Transaction;
+import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.hk2.CustomInject;
 import org.elcer.accounts.model.Account;
