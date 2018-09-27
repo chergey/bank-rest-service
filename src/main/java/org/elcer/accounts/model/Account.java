@@ -17,7 +17,7 @@ import javax.persistence.Id;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE) // ApacheDB can't handle AUTO
+    @GeneratedValue(strategy = GenerationType.SEQUENCE) // ApacheDB don't work well with IDENTITY (https://issues.apache.org/jira/browse/DERBY-5151)
     private long id;
 
     private String name;
