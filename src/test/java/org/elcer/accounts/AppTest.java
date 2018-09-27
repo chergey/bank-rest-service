@@ -1,18 +1,17 @@
 package org.elcer.accounts;
 
 import io.restassured.response.ResponseBody;
+import org.eclipse.jetty.server.Server;
 import org.elcer.accounts.app.AppConfig;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.services.AccountRepository;
 import org.elcer.accounts.services.AccountService;
+import org.elcer.accounts.utils.ExceptionUtils;
 import org.elcer.accounts.utils.RandomUtils;
 import org.elcer.accounts.utils.RunnerUtils;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +34,22 @@ public class AppTest {
 
     private static AccountService accountService;
     private static AccountRepository accountRepository;
+    private static Server server;
 
     @BeforeClass
     public static void setUp() {
 
-        RunnerUtils.runServer(RunnerUtils.DEFAULT_PORT, false);
+        server = RunnerUtils.startServer(RunnerUtils.DEFAULT_PORT, false);
 
         accountService = AppConfig.getServiceLocator().getService(AccountService.class);
         accountRepository = AppConfig.getServiceLocator().getService(AccountRepository.class);
         accounts = accountRepository.getAllAccounts();
 
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        ExceptionUtils.sneakyThrow(() -> server.stop());
     }
 
     @Repeat(2)

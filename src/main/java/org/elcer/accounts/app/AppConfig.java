@@ -24,11 +24,7 @@ public class AppConfig extends ResourceConfig {
 
     @VisibleForTesting
     public static ServiceLocator getServiceLocator() {
-        try {
-            initialized.await();
-        } catch (InterruptedException e) {
-            ExceptionUtils.sneakyThrow(e);
-        }
+        ExceptionUtils.sneakyThrow(()-> initialized.await() );
 
         return SERVICE_LOCATOR;
     }

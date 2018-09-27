@@ -18,11 +18,12 @@ public class RunnerUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(RunnerUtils.class);
 
-    public static void runServer(int port) {
-        runServer(port, true);
+    public static void startServer(int port) {
+        startServer(port, true);
     }
 
-    public static void runServer(int port, boolean wait) {
+    @SuppressWarnings("UnusedReturnValue")
+    public static Server startServer(int port, boolean wait) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         Server jettyServer = new Server(port);
@@ -39,6 +40,8 @@ public class RunnerUtils {
             logger.error("Error in server", e);
             ExceptionUtils.sneakyThrow(e);
         }
+
+        return jettyServer;
     }
 
 
@@ -63,8 +66,7 @@ public class RunnerUtils {
         }
 
         int port = Integer.parseInt(cmd.getOptionValue("port", Integer.toString(DEFAULT_PORT)));
-        runServer(port);
-
+        startServer(port);
 
     }
 }

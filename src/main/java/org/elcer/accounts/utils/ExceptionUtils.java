@@ -1,8 +1,12 @@
 package org.elcer.accounts.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+
+@UtilityClass
 public class ExceptionUtils {
     public static <T> void wrap(Consumer<T> delegate, Runnable cleanup) {
         wrap((Function<T, Object>) t -> {
@@ -50,5 +54,18 @@ public class ExceptionUtils {
     @SuppressWarnings("unchecked")
     public static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
         throw (E) e;
+    }
+
+    public interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void sneakyThrow(ThrowingRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            sneakyThrow(e);
+        }
     }
 }

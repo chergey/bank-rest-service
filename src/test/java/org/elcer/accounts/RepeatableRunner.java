@@ -9,8 +9,8 @@ import org.junit.runners.model.InitializationError;
 import javax.validation.constraints.NotNull;
 
 public class RepeatableRunner extends BlockJUnit4ClassRunner {
-    public RepeatableRunner(Class<?> klass) throws InitializationError {
-        super(klass);
+    public RepeatableRunner(Class<?> clazz) throws InitializationError {
+        super(clazz);
     }
 
     @Override

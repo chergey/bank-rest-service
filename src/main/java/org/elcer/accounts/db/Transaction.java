@@ -15,6 +15,7 @@ public class Transaction implements AutoCloseable {
     private final EntityTransaction delegate;
     private final EntityManager em;
 
+
     public Transaction(EntityManagerFactory entityManagerFactory) {
         em = entityManagerFactory.createEntityManager();
         delegate = em.getTransaction();
