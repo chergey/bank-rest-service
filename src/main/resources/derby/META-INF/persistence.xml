@@ -6,7 +6,7 @@
         <class>org.elcer.accounts.model.Account</class>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:accounts;create=true"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:${db.name};create=true"/>
             <property name="javax.persistence.jdbc.user" value="test"/>
             <property name="javax.persistence.jdbc.password" value="test"/>
             <property name="eclipselink.target-database" value="Derby"/>

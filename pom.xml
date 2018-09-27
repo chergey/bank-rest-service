@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.elcer.account</groupId>
-    <artifactId>app</artifactId>
+    <artifactId>bank-rest-service</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>bank rest service</name>
@@ -23,8 +23,70 @@
         <junit.version>4.12</junit.version>
     </properties>
 
-    <dependencies>
+    <profiles>
+        <profile>
+            <id>derby</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
 
+            <properties>
+                <db.name>accounts-db</db.name>
+            </properties>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/derby</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.derby</groupId>
+                    <artifactId>derby</artifactId>
+                    <version>10.13.1.1</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+
+        <profile>
+            <id>postgres</id>
+            <properties>
+                <db.name>accounts-db</db.name>
+            </properties>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources/postgres</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <version>42.2.5</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+
+    </profiles>
+
+    <dependencies>
 
         <!-- jetty -->
         <dependency>
@@ -57,8 +119,6 @@
             <artifactId>jetty-annotations</artifactId>
             <version>${jetty.version}</version>
         </dependency>
-
-
         <!-- jetty -->
 
 
@@ -86,7 +146,6 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
-
         <!-- EE spec-->
 
 
@@ -126,7 +185,6 @@
         <!-- jersey container -->
 
         <!-- jersey -->
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -134,18 +192,12 @@
         </dependency>
 
 
-        <!-- database -->
+        <!-- orm -->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.jpa</artifactId>
             <version>${org.eclipselink.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <version>10.13.1.1</version>
-        </dependency>
-
         <!-- database -->
 
 
@@ -167,12 +219,10 @@
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
         </dependency>
-
         <!--logging -->
 
 
         <!-- testing -->
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -214,11 +264,46 @@
             <version>1.4</version>
         </dependency>
 
-
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <executions>
+                    <execution>
+                        <id>enforce-postgres-XOR-derby-is-active</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireActiveProfile>
+                                    <profiles>derby,postgres</profiles>
+                                    <all>false</all>
+                                </requireActiveProfile>
+                                <evaluateBeanshell>
+                                    <condition><![CDATA[
+                                        // ensure PROFILE_ONE XOR PROFILE_TWO
+                                        print("Checking if only one of PROFILE_ONE and PROFILE_TWO profiles is active ...");
+                                        boolean profile1 = false, profile2 = false;
+                                        for(s: "${project.activeProfiles}".replaceAll("\\[?\\s?Profile \\{id: (?<profile>\\w+), source: \\w+\\}\\]?", "${profile}").split(",")) {
+                                            if("derby".equalsIgnoreCase(s)){ profile1 = true;}
+                                            if("postgres".equalsIgnoreCase(s)){ profile2 = true;}
+                                        }
+                                        print("derby XOR postgres: "+(derby != postgres));
+                                        return profile1 != profile2;
+                                    ]]></condition>
+                                </evaluateBeanshell>
+                            </rules>
+                            <failFast>true</failFast>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -255,7 +340,7 @@
                         <configuration>
                             <transformers>
                                 <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
