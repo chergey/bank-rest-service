@@ -11,7 +11,7 @@ public class ExecutorUtils {
 
     public static void runConcurrently(Runnable... tasks) {
         if (tasks.length == 0)
-            throw new IllegalArgumentException("tasks must be > 0");
+            throw new IllegalArgumentException("number of tasks must be > 0");
 
         ExecutorService executor = Executors.newFixedThreadPool(tasks.length);
 

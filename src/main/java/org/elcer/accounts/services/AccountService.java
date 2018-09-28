@@ -21,9 +21,8 @@ public class AccountService {
     @CustomInject
     private Logger logger;
 
-    private boolean isFirst(long from, long to) {
-        return from > to;
-    }
+    private DeadlockStrategy<Long> deadlockStrategy =
+            (candidate1, candidate2) -> candidate1.compareTo(candidate2) > 0;
 
     public void transfer(long from, long to, long amount) {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
@@ -31,7 +30,7 @@ public class AccountService {
         try (Transaction tran = accountRepository.beginTran()) {
             Account debitAccount, creditAccount;
 
-            if (isFirst(from, to)) {
+            if (deadlockStrategy.resolve(from, to)) {
                 debitAccount = accountRepository.retrieveAccountByIdWithTran(tran, from);
                 creditAccount = accountRepository.retrieveAccountByIdWithTran(tran, to);
             } else {
@@ -40,7 +39,7 @@ public class AccountService {
             }
 
             if (debitAccount.getBalance() >= amount) {
-                if (isFirst(from, to)) {
+                if (deadlockStrategy.resolve(from, to)) {
                     accountRepository.updateAccountWithTran(tran, debitAccount, -amount);
                     accountRepository.updateAccountWithTran(tran, creditAccount, amount);
                 } else {
@@ -57,3 +56,6 @@ public class AccountService {
         logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
     }
 }
+
+
+

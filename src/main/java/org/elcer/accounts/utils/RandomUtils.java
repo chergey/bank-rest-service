@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class RandomUtils {
 
     public static int getGtZeroRandom() {
-        return ThreadLocalRandom.current().nextInt(1, 100);
+        return ThreadLocalRandom.current().nextInt(10, 1000);
     }
 
     public static int getGtZeroRandom(int hbound) {

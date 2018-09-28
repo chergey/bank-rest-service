@@ -11,7 +11,7 @@
             <property name="javax.persistence.jdbc.password" value="test"/>
             <property name="eclipselink.target-database" value="Derby"/>
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
-            <property name="eclipselink.logging.level" value="FINE"/>
+            <property name="eclipselink.logging.level" value="INFO"/>
             <property name="eclipselink.session.customizer" value="org.elcer.accounts.db.EclipseLinkSessionCustomizer"/>
         </properties>
 

@@ -55,17 +55,16 @@ public class AppTest {
     @Repeat(2)
     @Test
     public void testConcurrencyAndDeadlocks() {
-        final int times = 100;
-        AtomicInteger i = new AtomicInteger(times);
+        final int times = 10000;
 
-        Account from = accountRepository.createAccount(36000);
-        Account to = accountRepository.createAccount(31000);
+        Account from = accountRepository.createAccount(360000);
+        Account to = accountRepository.createAccount(310000);
 
         long startingTotal = to.getBalance() + from.getBalance();
 
         ExecutorUtils.runConcurrently(
-                () -> transfer(i, from, to),
-                () -> transfer(i, to, from)
+                () -> transfer(times, from, to),
+                () -> transfer(times, to, from)
         );
 
         Account fromEnding = accountRepository.retrieveAccountById(from.getId());
@@ -76,8 +75,9 @@ public class AppTest {
 
     }
 
-    private void transfer(AtomicInteger i, Account debit, Account credit) {
-        while (i.get() >= 0) {
+    private void transfer(final int times, Account debit, Account credit) {
+        int i = times;
+        while (i-- >= 0) {
             try {
                 accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandom());
             } catch (Exception e) {
@@ -87,7 +87,6 @@ public class AppTest {
                 }
                 throw e;
             }
-            i.decrementAndGet();
         }
     }
 
