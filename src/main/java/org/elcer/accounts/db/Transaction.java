@@ -1,5 +1,6 @@
 package org.elcer.accounts.db;
 
+import org.eclipse.persistence.sessions.UnitOfWork;
 import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.persistence.EntityManager;
@@ -20,6 +21,7 @@ public class Transaction implements AutoCloseable {
         em = entityManagerFactory.createEntityManager();
         delegate = em.getTransaction();
         delegate.begin();
+       em.unwrap(UnitOfWork.class).beginEarlyTransaction();
     }
 
     @Override

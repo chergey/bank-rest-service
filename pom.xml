@@ -3,11 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.elcer.account</groupId>
-    <artifactId>bank-rest-service</artifactId>
+    <artifactId>bank-rest-service-jersey</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>bank rest service</name>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <jetty.version>9.4.12.v20180830</jetty.version>
@@ -242,6 +241,16 @@
             <version>4.5.6</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.5.2</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
         <!-- end testing -->
 
 
@@ -352,7 +361,29 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-groovy-test-source</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/src/test/groovy</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+
+
+
     </build>
 
 </project>

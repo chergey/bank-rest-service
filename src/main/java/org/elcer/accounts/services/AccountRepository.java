@@ -97,7 +97,7 @@ public class AccountRepository {
     }
 
 
-    //Resource disposing
+    //Automatic resource disposing
 
     private <R> R wrap(Function<Transaction, R> delegate) {
         Transaction tran = beginTran();

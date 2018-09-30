@@ -52,26 +52,54 @@ public class AppTest {
         ExceptionUtils.sneakyThrow(() -> server.stop());
     }
 
+
+
     @Repeat(2)
     @Test
     public void testConcurrencyAndDeadlocks() {
-        final int times = 10000;
+        final int times = 14000;
 
-        Account from = accountRepository.createAccount(360000);
-        Account to = accountRepository.createAccount(310000);
+        Account first = accountRepository.createAccount(326000);
+        Account second = accountRepository.createAccount(315000);
+        Account third = accountRepository.createAccount(313000);
+        Account fourth = accountRepository.createAccount(356000);
 
-        long startingTotal = to.getBalance() + from.getBalance();
+        long startingTotal = second.getBalance() + first.getBalance() + third.getBalance() + fourth.getBalance();
 
         ExecutorUtils.runConcurrently(
-                () -> transfer(times, from, to),
-                () -> transfer(times, to, from)
+                () -> transfer(times, first, second),
+                () -> transfer(times, second, first),
+                () -> transfer(times, third, second),
+
+                //  () -> transfer(times, second, fourth),
+                () -> transfer(times, second, third),
+                () -> transfer(times, first, third),
+            //    () -> transfer(times, first, fourth),
+
+                () -> transfer(times, third, second),
+                () -> transfer(times, third, first)
+            //    () -> transfer(times, third, fourth)
+
+//                () -> transfer(times, fourth, first),
+//                () -> transfer(times, fourth, second),
+//                () -> transfer(times, fourth, third)
+
         );
 
-        Account fromEnding = accountRepository.retrieveAccountById(from.getId());
-        Account toEnding = accountRepository.retrieveAccountById(to.getId());
+        Account firstInTheEnd = accountRepository.retrieveAccountById(first.getId());
+        Account secondInTheEnd = accountRepository.retrieveAccountById(second.getId());
+        Account thirdInTheEnd = accountRepository.retrieveAccountById(third.getId());
+        Account fourthInTheEnd = accountRepository.retrieveAccountById(fourth.getId());
 
-        long endingTotal = fromEnding.getBalance() + toEnding.getBalance();
+        long endingTotal = firstInTheEnd.getBalance() + secondInTheEnd.getBalance() + thirdInTheEnd.getBalance() +
+                fourthInTheEnd.getBalance();
+
+        Assert.assertTrue("Balance can't be less than zero", firstInTheEnd.getBalance() >= 0);
+        Assert.assertTrue("Balance can't be less than zero", secondInTheEnd.getBalance() >= 0);
+        Assert.assertTrue("Balance can't be less than zero", thirdInTheEnd.getBalance() >= 0);
+        Assert.assertTrue("Balance can't be less than zero", fourthInTheEnd.getBalance() >= 0);
         Assert.assertEquals(startingTotal, endingTotal);
+
 
     }
 
@@ -79,7 +107,7 @@ public class AppTest {
         int i = times;
         while (i-- >= 0) {
             try {
-                accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandom());
+                accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandomL());
             } catch (Exception e) {
                 if (e instanceof NotEnoughFundsException) {
                     logger.info("Not enough money left in {}, stopping", debit.getId());
@@ -134,7 +162,7 @@ public class AppTest {
                 if (from != to && amount > 0) {
 
                     logger.info("from {}, to {}", from, to);
-                    String url = String.format("account/transfer?from=%d&to=%d&amount=%d",
+                    String url = String.format("api/account/transfer?from=%d&to=%d&amount=%d",
                             from.getId(), to.getId(), amount);
                     logger.info(url);
 
