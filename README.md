@@ -14,6 +14,6 @@ To run
 ```
 mvn package 
 java -jar <app-name> -port=<port>
-curl http://localhost:<port>/account/transfer?from=1&to=2&amount=10
+curl http://localhost:<port>/api/account/transfer?from=1&to=2&amount=10
 ```
 

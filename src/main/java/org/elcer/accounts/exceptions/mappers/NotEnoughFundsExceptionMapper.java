@@ -1,5 +1,6 @@
-package org.elcer.accounts.exceptions;
+package org.elcer.accounts.exceptions.mappers;
 
+import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.AccountResponse;
 
 import javax.ws.rs.core.Response;

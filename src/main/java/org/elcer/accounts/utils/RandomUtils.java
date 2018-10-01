@@ -19,4 +19,7 @@ public final class RandomUtils {
     public static int getGtZeroRandom(int hbound) {
         return ThreadLocalRandom.current().nextInt(1, hbound);
     }
+    public static int getGtZeroRandom(int lbound, int hbound) {
+        return ThreadLocalRandom.current().nextInt(lbound, hbound);
+    }
 }

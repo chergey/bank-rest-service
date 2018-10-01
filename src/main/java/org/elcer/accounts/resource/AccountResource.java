@@ -1,15 +1,13 @@
 package org.elcer.accounts.resource;
 
 
+import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.services.AccountService;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -22,11 +20,29 @@ public class AccountResource {
     private AccountService accountService;
 
     @GET
-    @Path("/transfer")
-    public Response transfer(@QueryParam("from") long from, @QueryParam("to") long to,
-                             @QueryParam("amount") int amount) {
+    @Path("/{id}")
+    public Response getAccount(@PathParam("id") Long id) {
+        if (id == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
 
-        if (from == to) {
+        Account account = accountService.getAccount(id);
+        AccountResponse accountResponse=new AccountResponse("", 0);
+        accountResponse.setAccount(account);
+        return Response.ok(accountResponse).build();
+
+    }
+
+    @GET
+    @Path("/transfer")
+    public Response transfer(@QueryParam("from") Long from, @QueryParam("to") Long to,
+                             @QueryParam("amount") Long amount) {
+
+        if (from == null || to == null || amount == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (((long) from) == to) {
             return Response.ok(AccountResponse.DEBIT_ACCOUNT_IS_CREDIT_ACCOUNT).build();
         }
         if (amount < 0) {

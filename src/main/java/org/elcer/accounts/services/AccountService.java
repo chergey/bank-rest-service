@@ -21,13 +21,15 @@ public class AccountService {
     @CustomInject
     private Logger logger;
 
-    private SyncManager<Long> syncPrimitive = new SyncManager<>();
+    @Inject
+    private SyncManager syncManager;
 
     public void transfer(long from, long to, long amount) {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
 
+
         try (Transaction tran = accountRepository.beginTran()) {
-            syncPrimitive.withLock(from, to, () -> {
+            syncManager.withLock(from, to, () -> {
                 Account debitAccount, creditAccount;
                 debitAccount = accountRepository.retrieveAccountByIdWithTran(tran, from);
                 creditAccount = accountRepository.retrieveAccountByIdWithTran(tran, to);
@@ -46,6 +48,11 @@ public class AccountService {
         }
 
         logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
+    }
+
+    public Account getAccount(long id) {
+        return accountRepository.retrieveAccountById(id);
+
     }
 
 }

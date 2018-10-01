@@ -1,11 +1,13 @@
 package org.elcer.accounts.model;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AccountResponse {
 
 
@@ -20,6 +22,7 @@ public class AccountResponse {
 
     private String message;
     private int code;
+    private Account account;
 
     private static final String SPACE = " ";
 
