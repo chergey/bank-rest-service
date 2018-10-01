@@ -28,7 +28,7 @@ public class AccountResourceTest extends BaseTest {
 
     @Test
     public void testAccountTransfer400() {
-        String url = "api/account/transfer";
+        String url = "api/account/transfer?from=&to=&amount=";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
         assertHttpError(body, 400);

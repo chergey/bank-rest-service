@@ -4,6 +4,7 @@ package org.elcer.accounts.resource;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.services.AccountService;
+import org.elcer.accounts.hk2.Required;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -21,6 +22,7 @@ public class AccountResource {
 
     @GET
     @Path("/{id}")
+
     public Response getAccount(@PathParam("id") Long id) {
         if (id == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -35,14 +37,11 @@ public class AccountResource {
 
     @GET
     @Path("/transfer")
-    public Response transfer(@QueryParam("from") Long from, @QueryParam("to") Long to,
-                             @QueryParam("amount") Long amount) {
+    @Required({"from", "to", "amount"})
+    public Response transfer(@QueryParam("from") long from, @QueryParam("to") long to,
+                             @QueryParam("amount") long amount) {
 
-        if (from == null || to == null || amount == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        if (((long) from) == to) {
+        if (from == to) {
             return Response.ok(AccountResponse.DEBIT_ACCOUNT_IS_CREDIT_ACCOUNT).build();
         }
         if (amount < 0) {
