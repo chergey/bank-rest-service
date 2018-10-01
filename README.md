@@ -13,7 +13,7 @@ Stack
 To run
 ```
 mvn package 
-java -jar app-1.0-SNAPSHOT.jar -port=<port>
+java -jar <app-name> -port=<port>
 curl http://localhost:<port>/account/transfer?from=1&to=2&amount=10
 ```
 
