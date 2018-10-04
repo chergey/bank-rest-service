@@ -4,6 +4,7 @@ package org.elcer.accounts.services;
 import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.hk2.CustomInject;
+import org.elcer.accounts.hk2.Raw;
 import org.elcer.accounts.model.Account;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -22,7 +23,8 @@ public class AccountService {
     private Logger logger;
 
     @Inject
-    private SyncManager syncManager;
+    @Raw
+    private SyncManager<Long> syncManager;
 
     public void transfer(long from, long to, long amount) {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);

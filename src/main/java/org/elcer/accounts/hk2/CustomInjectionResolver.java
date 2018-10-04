@@ -2,7 +2,6 @@ package org.elcer.accounts.hk2;
 
 import org.glassfish.hk2.api.Injectee;
 import org.glassfish.hk2.api.InjectionResolver;
-import org.glassfish.hk2.api.Rank;
 import org.glassfish.hk2.api.ServiceHandle;
 import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -20,10 +18,7 @@ import java.util.Arrays;
 /*
  * Catch-all resolver for custom services
  */
-
-@Singleton
 @Service
-@Rank(1)
 @SuppressWarnings("unused")
 public class CustomInjectionResolver implements InjectionResolver<CustomInject> {
     @Inject

@@ -19,11 +19,12 @@ public class SyncManager<T extends Comparable<T>> {
     private DeadlockStrategy<T> deadlockStrategy =
             (candidate1, candidate2) -> candidate1.compareTo(candidate2) > 0;
 
-    @SuppressWarnings("SynchronizeOnNonFinalField")
+    @SuppressWarnings("all")
     public void withLock(final T one, final T second, Runnable action) {
-        Object o1 = slots.computeIfAbsent(one, (k) -> new Object()),
+        final Object o1 = slots.computeIfAbsent(one, (k) -> new Object()),
                 o2 = slots.computeIfAbsent(second, (k) -> new Object()),
                 firstToTake, secondToTake;
+
         if (deadlockStrategy.resolve(one, second)) {
             firstToTake = o1;
             secondToTake = o2;

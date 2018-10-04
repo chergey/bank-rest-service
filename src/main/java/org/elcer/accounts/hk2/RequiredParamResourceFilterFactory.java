@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @Provider
 public class RequiredParamResourceFilterFactory implements DynamicFeature {
 
-
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
         final Method resourceMethod = resourceInfo.getResourceMethod();
