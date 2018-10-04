@@ -4,7 +4,7 @@ package org.elcer.accounts.services;
 import com.google.common.annotations.VisibleForTesting;
 import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.AccountNotFoundException;
-import org.elcer.accounts.hk2.CustomInject;
+import org.elcer.accounts.hk2.PersistenceContext;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.utils.ExceptionUtils;
 import org.jvnet.hk2.annotations.Service;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 @Service
 public class AccountRepository {
 
-    @CustomInject(name = "accounts")
+    @PersistenceContext(name = "accounts")
     private EntityManagerFactory efFactory;
 
     @VisibleForTesting

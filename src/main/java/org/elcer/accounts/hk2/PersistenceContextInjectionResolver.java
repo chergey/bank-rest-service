@@ -4,8 +4,6 @@ import org.glassfish.hk2.api.Injectee;
 import org.glassfish.hk2.api.InjectionResolver;
 import org.glassfish.hk2.api.ServiceHandle;
 import org.jvnet.hk2.annotations.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,11 +14,11 @@ import java.util.Arrays;
 
 
 /*
- * Catch-all resolver for custom services
+ * Injection of persistence contexts
  */
 @Service
 @SuppressWarnings("unused")
-public class CustomInjectionResolver implements InjectionResolver<CustomInject> {
+public class PersistenceContextInjectionResolver implements InjectionResolver<PersistenceContext> {
     @Inject
     @Named(InjectionResolver.SYSTEM_RESOLVER_NAME)
     private InjectionResolver<Inject> systemResolver;
@@ -45,19 +43,11 @@ public class CustomInjectionResolver implements InjectionResolver<CustomInject> 
     }
 
     private enum Beans {
-        LOGGER(Logger.class) {
-            @Override
-            @SuppressWarnings("unchecked")
-            <T> T create(Injectee injectee) {
-                return (T) LoggerFactory.getLogger(injectee.getInjecteeClass());
-            }
-        },
-
         ENTITY_MANAGER_FACTORY(EntityManagerFactory.class) {
             @Override
             @SuppressWarnings("unchecked")
             <T> T create(Injectee injectee) {
-                CustomInject annotation = injectee.getParent().getAnnotation(CustomInject.class);
+                PersistenceContext annotation = injectee.getParent().getAnnotation(PersistenceContext.class);
                 EntityManagerFactory factory = Persistence.createEntityManagerFactory(annotation.name());
                 return (T) factory;
             }
@@ -67,7 +57,7 @@ public class CustomInjectionResolver implements InjectionResolver<CustomInject> 
             @Override
             @SuppressWarnings("unchecked")
             <T> T create(Injectee injectee) {
-                CustomInject annotation = injectee.getParent().getAnnotation(CustomInject.class);
+                PersistenceContext annotation = injectee.getParent().getAnnotation(PersistenceContext.class);
                 EntityManagerFactory factory = Persistence.createEntityManagerFactory(annotation.name());
                 return (T) factory.createEntityManager();
             }

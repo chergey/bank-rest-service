@@ -12,6 +12,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Target({METHOD, FIELD})
 @InjectionPointIndicator
-public @interface CustomInject {
+public @interface PersistenceContext {
     String name() default "";
 }

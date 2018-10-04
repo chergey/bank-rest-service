@@ -3,7 +3,6 @@ package org.elcer.accounts.services;
 
 import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
-import org.elcer.accounts.hk2.CustomInject;
 import org.elcer.accounts.hk2.Raw;
 import org.elcer.accounts.model.Account;
 import org.jvnet.hk2.annotations.Service;
@@ -19,7 +18,7 @@ public class AccountService {
     @Inject
     private AccountRepository accountRepository;
 
-    @CustomInject
+    @Inject
     private Logger logger;
 
     @Inject

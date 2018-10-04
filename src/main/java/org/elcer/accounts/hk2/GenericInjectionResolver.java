@@ -8,12 +8,15 @@ import org.glassfish.hk2.api.ServiceHandle;
 import org.glassfish.hk2.utilities.InjecteeImpl;
 import org.jvnet.hk2.annotations.Service;
 import org.jvnet.hk2.internal.SystemInjecteeImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 
 
 @Service
@@ -43,12 +46,14 @@ public class GenericInjectionResolver implements InjectionResolver<Inject> {
                 }
                 return systemResolver.resolve(injectee, root);
             } else if (injectee instanceof InjecteeImpl) {
-                ((InjecteeImpl) injectee).setRequiredType(
-                        rawType);
+                ((InjecteeImpl) injectee).setRequiredType(rawType);
             }
         }
 
-        return systemResolver.resolve(injectee, root);
+        return Arrays.stream(Beans.values()).filter(f -> f.clazz == injectee.getRequiredType())
+                .findAny().map(f -> f.create(injectee)).orElseGet(() ->
+                        systemResolver.resolve(injectee, root)
+                );
     }
 
     @Override
@@ -59,5 +64,24 @@ public class GenericInjectionResolver implements InjectionResolver<Inject> {
     @Override
     public boolean isMethodParameterIndicator() {
         return false;
+    }
+
+    private enum Beans {
+        LOGGER(Logger.class) {
+            @Override
+            @SuppressWarnings("unchecked")
+            <T> T create(Injectee injectee) {
+                return (T) LoggerFactory.getLogger(injectee.getInjecteeClass());
+            }
+        };
+
+        Beans(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+
+        abstract <T> T create(Injectee injectee);
+
+        private Class<?> clazz;
+
     }
 }
