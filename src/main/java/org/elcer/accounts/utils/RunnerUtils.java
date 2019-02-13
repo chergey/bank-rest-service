@@ -1,6 +1,7 @@
 package org.elcer.accounts.utils;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -8,15 +9,13 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.elcer.accounts.app.AppConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.glassfish.jersey.servlet.ServletProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @UtilityClass
+@Slf4j
 public class RunnerUtils {
 
     public static final int DEFAULT_PORT = 8082;
 
-    private static final Logger logger = LoggerFactory.getLogger(RunnerUtils.class);
 
     public static void startServer(int port) {
         startServer(port, true);
@@ -37,7 +36,7 @@ public class RunnerUtils {
             if (wait)
                 jettyServer.join();
         } catch (Exception e) {
-            logger.error("Error in server", e);
+            log.error("Error in server", e);
             ExceptionUtils.sneakyThrow(e);
         }
 

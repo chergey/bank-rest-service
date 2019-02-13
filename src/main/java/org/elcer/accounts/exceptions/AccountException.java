@@ -1,6 +1,6 @@
 package org.elcer.accounts.exceptions;
 
-class AccountException extends RuntimeException {
+abstract class AccountException extends RuntimeException {
 
     private long accountId;
 

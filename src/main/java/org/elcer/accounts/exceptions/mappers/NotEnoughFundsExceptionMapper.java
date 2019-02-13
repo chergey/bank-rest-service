@@ -11,8 +11,8 @@ import javax.ws.rs.ext.Provider;
 public class NotEnoughFundsExceptionMapper implements ExceptionMapper<NotEnoughFundsException> {
     @Override
     public Response toResponse(NotEnoughFundsException exception) {
-        return Response.status(404)
-                .entity(AccountResponse.NOT_ENOUGH_FUNDS.addAccountId(exception.getAccountId()))
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity(AccountResponse.notEnoughFunds().addAccountId(exception.getAccountId()))
                 .build();
     }
 }

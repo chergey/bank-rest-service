@@ -1,6 +1,4 @@
-package org.elcer.accounts.hk2;
-
-import org.glassfish.hk2.api.InjectionPointIndicator;
+package org.elcer.accounts.hk2.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -11,7 +9,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
 @Target({METHOD, FIELD})
-@InjectionPointIndicator
-public @interface PersistenceContext {
+public @interface PersistenceUnit {
     String name() default "";
 }

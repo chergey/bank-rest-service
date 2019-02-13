@@ -1,15 +1,17 @@
 package org.elcer.accounts.app;
 
+import org.elcer.accounts.hk2.annotations.Component;
+import org.elcer.accounts.hk2.annotations.Eager;
 import org.elcer.accounts.services.AccountRepository;
 import org.elcer.accounts.utils.RandomUtils;
-import org.jvnet.hk2.annotations.Service;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Singleton;
+import java.math.BigDecimal;
 
-@Singleton
-@Service
+@SuppressWarnings("unused")
+@Component
+@Eager
 public class SampleDataInitializer {
 
     @Inject
@@ -24,7 +26,8 @@ public class SampleDataInitializer {
         if (init) return;
         try {
             for (int i = 1; i < ACCOUNS_TO_CREATE; i++) {
-                accountRepository.createAccount(RandomUtils.getGtZeroRandom());
+                accountRepository.createAccount(RandomUtils.nextString(10),
+                        BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
             }
         } finally {
             init = true;

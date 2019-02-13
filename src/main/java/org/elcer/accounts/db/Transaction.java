@@ -21,7 +21,7 @@ public class Transaction implements AutoCloseable {
         em = entityManagerFactory.createEntityManager();
         delegate = em.getTransaction();
         delegate.begin();
-       em.unwrap(UnitOfWork.class).beginEarlyTransaction();
+        em.unwrap(UnitOfWork.class).beginEarlyTransaction();
     }
 
     @Override

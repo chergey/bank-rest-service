@@ -5,16 +5,22 @@ import com.google.common.annotations.VisibleForTesting;
 import eu.infomas.annotation.AnnotationDetector;
 import gov.va.oia.HK2Utilities.AnnotatedClasses;
 import gov.va.oia.HK2Utilities.AnnotationReporter;
+import org.elcer.accounts.hk2.annotations.Component;
+import org.elcer.accounts.hk2.annotations.Eager;
 import org.elcer.accounts.utils.ExceptionUtils;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.ApplicationPath;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 @ApplicationPath("/")
@@ -24,7 +30,7 @@ public class AppConfig extends ResourceConfig {
 
     @VisibleForTesting
     public static ServiceLocator getServiceLocator() {
-        ExceptionUtils.sneakyThrow(()-> initialized.await() );
+        ExceptionUtils.sneakyThrow(() -> initialized.await());
 
         return SERVICE_LOCATOR;
     }
@@ -37,13 +43,15 @@ public class AppConfig extends ResourceConfig {
     public AppConfig(ServiceLocator serviceLocator) {
         packages(PACKAGE_NAME);
         addServices(serviceLocator);
+        register(JacksonFeature.class);
+
     }
 
     private void addServices(ServiceLocator serviceLocator) {
         AnnotatedClasses ac = new AnnotatedClasses();
 
         @SuppressWarnings("unchecked")
-        AnnotationDetector cf = new AnnotationDetector(new AnnotationReporter(ac, new Class[]{Service.class}));
+        AnnotationDetector cf = new AnnotationDetector(new AnnotationReporter(ac, new Class[]{Component.class}));
         Class<?>[] annotatedClasses = new Class[0];
 
         try {
@@ -53,11 +61,33 @@ public class AppConfig extends ResourceConfig {
             logger.error("Error while scanning packages", e);
         }
 
-        ServiceLocatorUtilities.addClasses(serviceLocator, annotatedClasses);
+        Class[] classes = Arrays.stream(annotatedClasses).filter(c -> !c.isInterface()).toArray(Class[]::new);
+        ServiceLocatorUtilities.addClasses(serviceLocator, classes);
+        Map<Class<?>, Class<?>> bindings = new HashMap<>();
+        for (Class<?> annotatedClass : annotatedClasses) {
+            if (annotatedClass.isInterface()) {
+                Component annotation = annotatedClass.getAnnotation(Component.class);
+                Class<?> impl = annotation.value();
+                if (impl == Class.class)
+                    throw new RuntimeException("Component implementation is not defined!");
 
-        //run initializer
-        serviceLocator.getService(SampleDataInitializer.class);
+                bindings.put(annotatedClass, impl);
 
+            }
+        }
+
+        register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bindings.forEach((intf, imp) -> bind(imp).to(intf));
+            }
+        });
+
+        for (Class<?> annotatedClass : annotatedClasses) {
+            if (annotatedClass.isAnnotationPresent(Eager.class)) {
+                serviceLocator.getService(annotatedClass);
+            }
+        }
         SERVICE_LOCATOR = serviceLocator;
         initialized.countDown();
     }

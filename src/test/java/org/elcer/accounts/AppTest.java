@@ -8,13 +8,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 
 @RunWith(RepeatableRunner.class)
-public class AppTest  extends BaseTest{
+public class AppTest extends BaseTest {
 
 
     @Repeat(2)
@@ -22,12 +23,13 @@ public class AppTest  extends BaseTest{
     public void testConcurrencyAndDeadlocks() {
         final int times = 14000;
 
-        Account first = accountRepository.createAccount(326000);
-        Account second = accountRepository.createAccount(315000);
-        Account third = accountRepository.createAccount(313000);
-        Account fourth = accountRepository.createAccount(356000);
+        Account first = accountRepository.createAccount("Mike", BigDecimal.valueOf(32600));
+        Account second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(315000));
+        Account third = accountRepository.createAccount("David", BigDecimal.valueOf(13000));
+        Account fourth = accountRepository.createAccount("Steve", BigDecimal.valueOf(356000));
 
-        long startingTotal = second.getBalance() + first.getBalance() + third.getBalance() + fourth.getBalance();
+        BigDecimal startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
+                .add(fourth.getBalance());
 
         ExecutorUtils.runConcurrently(
                 () -> transfer(times, first, second),
@@ -54,13 +56,17 @@ public class AppTest  extends BaseTest{
         Account thirdInTheEnd = accountRepository.retrieveAccountById(third.getId());
         Account fourthInTheEnd = accountRepository.retrieveAccountById(fourth.getId());
 
-        long endingTotal = firstInTheEnd.getBalance() + secondInTheEnd.getBalance() + thirdInTheEnd.getBalance() +
-                fourthInTheEnd.getBalance();
+        BigDecimal endingTotal = firstInTheEnd.getBalance().add(secondInTheEnd.getBalance()).add(thirdInTheEnd.getBalance())
+                .add(fourthInTheEnd.getBalance());
 
-        Assert.assertTrue("Balance can't be less than zero", firstInTheEnd.getBalance() >= 0);
-        Assert.assertTrue("Balance can't be less than zero", secondInTheEnd.getBalance() >= 0);
-        Assert.assertTrue("Balance can't be less than zero", thirdInTheEnd.getBalance() >= 0);
-        Assert.assertTrue("Balance can't be less than zero", fourthInTheEnd.getBalance() >= 0);
+        Assert.assertTrue("Balance can't be less than zero",
+                firstInTheEnd.getBalance().compareTo(BigDecimal.ZERO) >= 0);
+        Assert.assertTrue("Balance can't be less than zero",
+                secondInTheEnd.getBalance().compareTo(BigDecimal.ZERO) >= 0);
+        Assert.assertTrue("Balance can't be less than zero",
+                thirdInTheEnd.getBalance().compareTo(BigDecimal.ZERO) >= 0);
+        Assert.assertTrue("Balance can't be less than zero",
+                fourthInTheEnd.getBalance().compareTo(BigDecimal.ZERO) >= 0);
         Assert.assertEquals(startingTotal, endingTotal);
 
 
@@ -70,7 +76,7 @@ public class AppTest  extends BaseTest{
         int i = times;
         while (i-- >= 0) {
             try {
-                accountService.transfer(debit.getId(), credit.getId(), RandomUtils.getGtZeroRandomL());
+                accountService.transfer(debit.getId(), credit.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandomL()));
             } catch (Exception e) {
                 if (e instanceof NotEnoughFundsException) {
                     logger.info("Not enough money left in {}, stopping", debit.getId());
@@ -100,7 +106,7 @@ public class AppTest  extends BaseTest{
                 }
 
                 try {
-                    accountService.transfer(from.getId(), to.getId(), RandomUtils.getGtZeroRandom());
+                    accountService.transfer(from.getId(), to.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
                 } catch (Exception e) {
                     continue;
                 }
@@ -110,10 +116,9 @@ public class AppTest  extends BaseTest{
         });
 
         Assert.assertTrue("Oops, account must not end up with negative balance.",
-                accountRepository.getAllAccounts().stream().noneMatch(a -> a.getBalance() < 0)
+                accountRepository.getAllAccounts().stream().noneMatch(a -> a.getBalance().compareTo(BigDecimal.ZERO) < 0)
         );
     }
-
 
 
     private static Account getRandomAccount() {
@@ -128,7 +133,6 @@ public class AppTest  extends BaseTest{
         Objects.requireNonNull(account, "Account can't be null. Check your data!");
         return account;
     }
-
 
 
     private static Account getAccountFromDb(int acc) {

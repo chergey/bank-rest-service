@@ -4,27 +4,38 @@ package org.elcer.accounts.services;
 import com.google.common.annotations.VisibleForTesting;
 import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.AccountNotFoundException;
-import org.elcer.accounts.hk2.PersistenceContext;
+import org.elcer.accounts.hk2.annotations.Component;
+import org.elcer.accounts.hk2.annotations.PersistenceUnit;
 import org.elcer.accounts.model.Account;
+import org.elcer.accounts.utils.CriteriaUtils;
 import org.elcer.accounts.utils.ExceptionUtils;
-import org.jvnet.hk2.annotations.Service;
 
+import javax.inject.Inject;
 import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@Service
+@Component
 public class AccountRepository {
 
-    @PersistenceContext(name = "accounts")
+    @PersistenceUnit(name = "accounts")
+    @Inject
     private EntityManagerFactory efFactory;
 
+    public Account createAccount(Account account) {
+        return wrap(tran -> {
+            tran.getEm().persist(account);
+            return account;
+        });
+    }
+
     @VisibleForTesting
-    public Account createAccount(long amount) {
-        Account account = new Account(amount);
+    public Account createAccount(String name, BigDecimal amount) {
+        Account account = new Account(name, amount);
         return wrap(tran -> {
             tran.getEm().persist(account);
             return account;
@@ -54,41 +65,51 @@ public class AccountRepository {
                 tran -> retrieveAccountByIdWithTran(tran, id));
     }
 
+    public List<Account> retrieveAccountsByName(String name) {
+        return wrap((Function<Transaction, List<Account>>)
+                tran -> retrieveAccountByNameWithTran(tran, name));
+    }
+
+    private List<Account> retrieveAccountByNameWithTran(Transaction tran, String name) {
+        return _retrieveAccountsByName(tran.getEm(), name);
+    }
+
+    private List<Account> _retrieveAccountsByName(EntityManager em, String name) {
+        return CriteriaUtils.createQuery(em, Account.class,
+                (builder, root) -> builder.equal(root.get("name"), name))
+                .getResultList();
+
+    }
+
 
     Account retrieveAccountByIdWithTran(Transaction tran, long id) {
         return _retrieveAccountById(tran.getEm(), id);
     }
 
     private Account _retrieveAccountById(EntityManager em, long id) {
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<Account> q = builder.createQuery(Account.class);
-        Root<Account> root = q.from(Account.class);
-        q.select(root).where(builder.equal(root.get("id"), id));
-        TypedQuery<Account> query = em.createQuery(q);
         try {
-            return query.getSingleResult();
+            return CriteriaUtils.createQuery(em, Account.class,
+                    (builder, root) -> builder.equal(root.get("id"), id)).getSingleResult();
         } catch (NoResultException e) {
             throw new AccountNotFoundException(id);
         }
     }
 
 
-
-
-    public void updateAccount(@NotNull Account account, long balance) {
+    public void updateAccount(@NotNull Account account, BigDecimal balance) {
         wrap((Consumer<Transaction>) tran -> updateAccountWithTran(tran, account, balance));
     }
 
-    void updateAccountWithTran(Transaction tran, Account account, long amount) {
+    void updateAccountWithTran(Transaction tran, Account account, BigDecimal amount) {
         _updateAccount(tran.getEm(), account, amount);
     }
 
-    private void _updateAccount(EntityManager em, Account account, long amount) {
+    private void _updateAccount(EntityManager em, Account account, BigDecimal amount) {
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaUpdate<Account> update = builder.createCriteriaUpdate(Account.class);
         Root<Account> root = update.from(Account.class);
-        Path<Long> balancePath = root.get("balance");
-        Expression<Long> eventualBalance = builder.sum(balancePath, amount);
+        Path<BigDecimal> balancePath = root.get("balance");
+        Expression<BigDecimal> eventualBalance = builder.sum(balancePath, amount);
         update.set(balancePath, eventualBalance);
 
         update.where(builder.equal(root.get("id"), account.getId()));

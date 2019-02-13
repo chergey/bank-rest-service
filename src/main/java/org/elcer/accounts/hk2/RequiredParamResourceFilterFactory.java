@@ -1,5 +1,9 @@
 package org.elcer.accounts.hk2;
 
+import org.apache.commons.lang3.StringUtils;
+import org.elcer.accounts.hk2.annotations.Required;
+
+import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -21,15 +25,22 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
         final Method resourceMethod = resourceInfo.getResourceMethod();
         Required ann = resourceMethod.getAnnotation(Required.class);
         if (ann != null)
-            context.register(new RequiredParamFilter(ann.value()));
+            context.register(new RequiredParamFilter(ann.value(), resourceInfo));
     }
 
     private class RequiredParamFilter implements ContainerRequestFilter {
 
         private final List<String> requiredParams;
 
-        private RequiredParamFilter(String[] requiredParams) {
+        private RequiredParamFilter(String[] requiredParams, ResourceInfo resourceInfo) {
             this.requiredParams = Arrays.stream(requiredParams).collect(Collectors.toList());
+            if (!Arrays.stream(resourceInfo.getResourceMethod().getParameters())
+                    .map(r -> r.getAnnotation(Path.class))
+                    .filter(Objects::nonNull)
+                    .map(Path::value)
+                    .allMatch(this.requiredParams::contains)) {
+                throw new IllegalArgumentException("@Required params should refer to @Path params");
+            }
         }
 
         @Override
@@ -39,15 +50,12 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
 
             Set<String> urlParms = queryParameters.keySet();
             for (Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
-                if (param.getValue().stream().allMatch(f -> f == null || f.isEmpty()) && requiredParams.contains(param.getKey()))
+                if (param.getValue().stream().allMatch(StringUtils::isEmpty) && requiredParams.contains(param.getKey()))
                     requiredParametersValueMissing.add(param.getKey());
             }
 
-            for (String requiredParam : requiredParams) {
-                if (!urlParms.contains(requiredParam)) {
-                    requiredParametersValueMissing.add(requiredParam);
-                }
-            }
+            requiredParams.stream().filter(r -> !urlParms.contains(r))
+                    .forEach(requiredParametersValueMissing::add);
 
             if (!requiredParametersValueMissing.isEmpty()) {
                 throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)

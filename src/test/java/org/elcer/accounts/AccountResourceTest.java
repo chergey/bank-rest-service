@@ -22,7 +22,7 @@ public class AccountResourceTest extends BaseTest {
         logger.info(url);
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class), AccountResponse.SUCCESS);
+        Assert.assertEquals(body.as(AccountResponse.class), AccountResponse.success());
 
     }
 
@@ -31,7 +31,7 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=&to=&amount=";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        assertHttpError(body, 400);
+        assertHttpStatus(body, 400);
 
 
     }
@@ -41,7 +41,7 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=1&amount=999999";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.NOT_ENOUGH_FUNDS.getCode());
+        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.notEnoughFunds().getCode());
     }
 
     @Test
@@ -49,7 +49,8 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=2&amount=100";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.DEBIT_ACCOUNT_IS_CREDIT_ACCOUNT.getCode());
+        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.debitAccountIsCreditAccount().getCode());
+        assertHttpStatus(body, 400);
     }
 
 
@@ -58,7 +59,8 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=1&amount=-100";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.NEGATIVE_AMOUNT.getCode());
+        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.negativeAmount().getCode());
+        assertHttpStatus(body, 400);
 
     }
 
@@ -81,7 +83,7 @@ public class AccountResourceTest extends BaseTest {
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
 
-        assertHttpError(body, 404);
+        assertHttpStatus(body, 404);
 
 
     }
@@ -91,14 +93,14 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/99999";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        assertHttpError(body, 404);
+        assertHttpStatus(body, 404);
 
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.NO_SUCH_ACCOUNT.getCode());
+        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.noSuchAccount().getCode());
 
 
     }
 
-    private static void assertHttpError(ResponseBody body, int code) {
+    private static void assertHttpStatus(ResponseBody body, int code) {
         Assert.assertTrue(body instanceof RestAssuredResponseImpl &&
                 ((RestAssuredResponseImpl) body).getGroovyResponse().getStatusCode() == code);
 
