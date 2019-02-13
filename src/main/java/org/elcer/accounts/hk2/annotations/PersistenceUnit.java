@@ -7,6 +7,11 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+
+/**
+ * JPA persistence unit
+ * @see javax.persistence.EntityManagerFactory
+ */
 @Retention(RUNTIME)
 @Target({METHOD, FIELD})
 public @interface PersistenceUnit {

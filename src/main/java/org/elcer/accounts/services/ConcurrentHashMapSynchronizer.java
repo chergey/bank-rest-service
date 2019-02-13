@@ -4,6 +4,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
+/**
+ * Alternative synchronization, making use of internal structure of CHM
+ * @see Synchronizer
+ */
 @SuppressWarnings("unused")
 public class ConcurrentHashMapSynchronizer<T extends Comparable<T>> implements Synchronizer<T> {
 

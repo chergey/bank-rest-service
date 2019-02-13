@@ -7,8 +7,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
- * Synchronization mechanism on primitives
- *
+ * Default synchronization making use of ReentrantLockS
+ * @see Synchronizer
  * @param <T>
  */
 

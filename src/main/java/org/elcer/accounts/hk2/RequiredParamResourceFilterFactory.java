@@ -17,6 +17,11 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Provider validating required parameters at the request time
+ *
+ * @see org.elcer.accounts.hk2.annotations.Required
+ */
 @Provider
 public class RequiredParamResourceFilterFactory implements DynamicFeature {
 
