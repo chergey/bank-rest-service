@@ -28,7 +28,7 @@ public class AccountResource {
     @POST
     @Path("/create")
     public Response createAccount(Account account) {
-        UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+        var builder = uriInfo.getAbsolutePathBuilder();
         builder.path(Long.toString(account.getId()));
         return Response.created(builder.build()).build();
     }
@@ -36,15 +36,15 @@ public class AccountResource {
     @GET
     @Path("/{name:[a-zA-Z]+}")
     public Response getAccountByName(@PathParam("name") String name) {
-        List<Account> accounts = accountService.getAccounts(name);
-        AccountListResponse accountResponse = AccountListResponse.builder().accounts(accounts).build();
+        var accounts = accountService.getAccounts(name);
+        var accountResponse = AccountListResponse.builder().accounts(accounts).build();
         return Response.ok(accountResponse).build();
     }
 
     @GET
     @Path("/{id:\\d+}")
     public Response getAccount(@PathParam("id") Long id) {
-        Account account = accountService.getAccounts(id);
+        var account = accountService.getAccounts(id);
         AccountResponse accountResponse = new AccountResponse();
         accountResponse.setAccount(account);
         return Response.ok(accountResponse).build();

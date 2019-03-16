@@ -24,7 +24,7 @@ public class RepeatableRunner extends BlockJUnit4ClassRunner {
     private Description describeRepeatTest(@NotNull FrameworkMethod method) {
         final int times = method.getAnnotation(Repeat.class).value();
 
-        final Description description = Description.createSuiteDescription(
+        final var description = Description.createSuiteDescription(
                 testName(method) + " [" + times + " times]",
                 method.getAnnotations());
 
@@ -37,12 +37,12 @@ public class RepeatableRunner extends BlockJUnit4ClassRunner {
 
     @Override
     protected void runChild(FrameworkMethod method, RunNotifier notifier) {
-        final Description descriptions = describeChild(method);
+        final var descriptions = describeChild(method);
         if (isIgnored(method) || !isRepeatable(method)) {
             super.runChild(method, notifier);
             return;
         }
-        for (Description description : descriptions.getChildren()) {
+        for (var description : descriptions.getChildren()) {
             runLeaf(methodBlock(method), description, notifier);
         }
 

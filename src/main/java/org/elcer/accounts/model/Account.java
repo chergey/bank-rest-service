@@ -4,6 +4,7 @@ package org.elcer.accounts.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @NoArgsConstructor
+@Accessors(chain = true)
 public class Account {
 
     @Id

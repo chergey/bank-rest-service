@@ -1,7 +1,6 @@
 package org.elcer.accounts.services;
 
 
-import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Raw;
@@ -31,12 +30,11 @@ public class AccountService {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
 
 
-        try (Transaction tran = accountRepository.beginTran()) {
+        try (var tran = accountRepository.beginTran()) {
             synchronizer.withLock(from, to, () -> {
 
-                Account debitAccount, creditAccount;
-                debitAccount = accountRepository.retrieveAccountById(tran, from);
-                creditAccount = accountRepository.retrieveAccountById(tran, to);
+                Account debitAccount = accountRepository.retrieveAccountById(tran, from),
+                        creditAccount = accountRepository.retrieveAccountById(tran, to);
 
                 if (debitAccount.getBalance().compareTo(amount) >= 0) {
                     accountRepository.setBalance(tran, debitAccount,
@@ -53,8 +51,6 @@ public class AccountService {
             logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
         }
     }
-
-
 
 
     public Account getAccounts(long id) {

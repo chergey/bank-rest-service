@@ -8,7 +8,7 @@ import org.eclipse.persistence.sessions.Session;
 public class EclipseLinkSessionCustomizer implements SessionCustomizer {
     @Override
     public void customize(Session session) {
-        DatabaseLogin databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
+        var databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
         databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_SERIALIZABLE);
     }
 }

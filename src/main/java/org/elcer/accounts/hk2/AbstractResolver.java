@@ -54,11 +54,11 @@ public abstract class AbstractResolver<T> implements InjectionResolver<T> {
             @Override
             @SuppressWarnings("unchecked")
             <T> T create(Injectee injectee) {
-                PersistenceUnit annotation = injectee.getParent().getAnnotation(PersistenceUnit.class);
+                var annotation = injectee.getParent().getAnnotation(PersistenceUnit.class);
                 if (annotation == null || StringUtils.isEmpty(annotation.name())) {
                     throw new RuntimeException("@PersistenceUnit (and name) should be specified on EntityManagerFactory");
                 }
-                EntityManagerFactory factory = Persistence.createEntityManagerFactory(annotation.name());
+                var factory = Persistence.createEntityManagerFactory(annotation.name());
                 return (T) factory;
             }
         },
@@ -67,11 +67,11 @@ public abstract class AbstractResolver<T> implements InjectionResolver<T> {
             @Override
             @SuppressWarnings("unchecked")
             <T> T create(Injectee injectee) {
-                PersistenceContext annotation = injectee.getParent().getAnnotation(PersistenceContext.class);
+                var annotation = injectee.getParent().getAnnotation(PersistenceContext.class);
                 if (annotation == null || StringUtils.isEmpty(annotation.name())) {
                     throw new RuntimeException("@PersistenceContext (and name) should be specified on EntityManager");
                 }
-                EntityManagerFactory factory = Persistence.createEntityManagerFactory(annotation.name());
+                var factory = Persistence.createEntityManagerFactory(annotation.name());
                 return (T) factory.createEntityManager();
             }
         };

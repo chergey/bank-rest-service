@@ -12,7 +12,6 @@ import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.inject.Inject;
 import javax.persistence.*;
-import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,7 +34,7 @@ public class AccountRepository  {
 
     @VisibleForTesting
     public Account createAccount(String name, BigDecimal amount) {
-        Account account = new Account(name, amount);
+        var account = new Account(name, amount);
         return wrapInTran(tran -> {
             tran.getEm().persist(account);
             return account;
@@ -54,9 +53,9 @@ public class AccountRepository  {
 
     @SuppressWarnings("WeakerAccess")
     List<Account> getAllAccounts(Transaction tran) {
-        CriteriaBuilder builder = tran.getEm().getCriteriaBuilder();
-        CriteriaQuery<Account> q = builder.createQuery(Account.class);
-        TypedQuery<Account> query = tran.getEm().createQuery(q);
+        var builder = tran.getEm().getCriteriaBuilder();
+        var q = builder.createQuery(Account.class);
+        var query = tran.getEm().createQuery(q);
         return query.getResultList();
     }
 
@@ -109,10 +108,10 @@ public class AccountRepository  {
 
 
     private void _setBalance(EntityManager em, Account account, BigDecimal amount) {
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaUpdate<Account> update = builder.createCriteriaUpdate(Account.class);
-        Root<Account> root = update.from(Account.class);
-        Path<BigDecimal> balancePath = root.get("balance");
+        var builder = em.getCriteriaBuilder();
+        var update = builder.createCriteriaUpdate(Account.class);
+        var root = update.from(Account.class);
+        var balancePath = root.get("balance");
         update.set(balancePath, amount);
         update.where(builder.equal(root.get("id"), account.getId()));
         Query query = em.createQuery(update);
@@ -122,11 +121,11 @@ public class AccountRepository  {
 
 
     private void _addBalance(EntityManager em, Account account, BigDecimal amount) {
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaUpdate<Account> update = builder.createCriteriaUpdate(Account.class);
-        Root<Account> root = update.from(Account.class);
-        Path<BigDecimal> balancePath = root.get("balance");
-        Expression<BigDecimal> eventualBalance = builder.sum(balancePath, amount);
+        var builder = em.getCriteriaBuilder();
+        var update = builder.createCriteriaUpdate(Account.class);
+        var root = update.from(Account.class);
+        var balancePath = root.<BigDecimal>get("balance");
+        var eventualBalance = builder.sum(balancePath, amount);
         update.set(balancePath, eventualBalance);
 
         update.where(builder.equal(root.get("id"), account.getId()));
@@ -139,7 +138,7 @@ public class AccountRepository  {
     //Automatic resource disposing
 
     private <R> R wrapInTran(Function<Transaction, R> delegate) {
-        Transaction tran = beginTran();
+        var tran = beginTran();
         return ExceptionUtils.wrap(delegate, () -> {
             try {
                 tran.commit();
@@ -152,7 +151,7 @@ public class AccountRepository  {
     }
 
     private void wrapInTran(Consumer<Transaction> delegate) {
-        Transaction tran = beginTran();
+        var tran = beginTran();
         ExceptionUtils.wrap(delegate, () -> {
             try {
                 tran.commit();

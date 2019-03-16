@@ -1,11 +1,11 @@
 package org.elcer.accounts;
 
+import lombok.SneakyThrows;
 import org.eclipse.jetty.server.Server;
 import org.elcer.accounts.app.AppConfig;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.services.AccountRepository;
 import org.elcer.accounts.services.AccountService;
-import org.elcer.accounts.utils.ExceptionUtils;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -38,8 +38,9 @@ public abstract class BaseTest {
     }
 
     @AfterClass
+    @SneakyThrows
     public static void tearDown() {
-        ExceptionUtils.sneakyThrow(() -> server.stop());
+        server.stop();
     }
 
 }

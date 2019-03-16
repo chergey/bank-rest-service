@@ -50,11 +50,11 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
 
         @Override
         public void filter(ContainerRequestContext containerRequest) {
-            List<String> requiredParametersValueMissing = new ArrayList<>();
-            MultivaluedMap<String, String> queryParameters = containerRequest.getUriInfo().getQueryParameters();
+            var requiredParametersValueMissing = new ArrayList<String>();
+            var queryParameters = containerRequest.getUriInfo().getQueryParameters();
 
-            Set<String> urlParms = queryParameters.keySet();
-            for (Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
+            var urlParms = queryParameters.keySet();
+            for (var param : queryParameters.entrySet()) {
                 if (param.getValue().stream().allMatch(StringUtils::isEmpty) && requiredParams.contains(param.getKey()))
                     requiredParametersValueMissing.add(param.getKey());
             }

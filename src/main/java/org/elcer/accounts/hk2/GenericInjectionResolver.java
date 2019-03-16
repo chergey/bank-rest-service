@@ -1,9 +1,9 @@
 package org.elcer.accounts.hk2;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Raw;
-import org.elcer.accounts.utils.ExceptionUtils;
 import org.glassfish.hk2.api.Injectee;
 import org.glassfish.hk2.api.Rank;
 import org.glassfish.hk2.api.ServiceHandle;
@@ -26,16 +26,13 @@ import java.lang.reflect.Type;
 public class GenericInjectionResolver extends AbstractResolver<Inject> {
 
     @Override
+    @SneakyThrows
     public Object resolve(Injectee injectee, ServiceHandle<?> root) {
         if (injectee.getRequiredType() instanceof ParameterizedType &&
                 injectee.getParent().getAnnotation(Raw.class) != null) {
             Type rawType = ((ParameterizedType) injectee.getRequiredType()).getRawType();
             if (injectee instanceof SystemInjecteeImpl) {
-                try {
-                    FieldUtils.writeDeclaredField(injectee, "requiredType", rawType, true);
-                } catch (IllegalAccessException e) {
-                    ExceptionUtils.sneakyThrow(e);
-                }
+                FieldUtils.writeDeclaredField(injectee, "requiredType", rawType, true);
                 return systemResolver.resolve(injectee, root);
             } else if (injectee instanceof InjecteeImpl) {
                 ((InjecteeImpl) injectee).setRequiredType(rawType);

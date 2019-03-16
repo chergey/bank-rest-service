@@ -1,5 +1,6 @@
 package org.elcer.accounts.utils;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
@@ -22,6 +23,7 @@ public class RunnerUtils {
     }
 
     @SuppressWarnings("UnusedReturnValue")
+    @SneakyThrows
     public static Server startServer(int port, boolean wait) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -37,7 +39,7 @@ public class RunnerUtils {
                 jettyServer.join();
         } catch (Exception e) {
             log.error("Error in server", e);
-            ExceptionUtils.sneakyThrow(e);
+            throw e;
         }
 
         return jettyServer;

@@ -1,5 +1,6 @@
 package org.elcer.accounts.utils;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 import java.util.function.Consumer;
@@ -29,6 +30,7 @@ public class ExceptionUtils {
         }, cleanup, arg);
     }
 
+    @SneakyThrows
     public static <T, R> R wrap(Function<T, R> delegate, Runnable cleanup, T arg) {
         Exception saved = null;
         R value = null;
@@ -46,25 +48,9 @@ public class ExceptionUtils {
             }
         }
         if (saved != null) {
-            sneakyThrow(saved);
+            throw saved;
         }
         return value;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
-        throw (E) e;
-    }
-
-    public interface ThrowingRunnable {
-        void run() throws Exception;
-    }
-
-    public static void sneakyThrow(ThrowingRunnable runnable) {
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            sneakyThrow(e);
-        }
-    }
 }

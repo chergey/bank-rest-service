@@ -23,12 +23,12 @@ public class AppTest extends BaseTest {
     public void testConcurrencyAndDeadlocks() {
         final int times = 14000;
 
-        Account first = accountRepository.createAccount("Mike", BigDecimal.valueOf(622600));
-        Account second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(2315000));
-        Account third = accountRepository.createAccount("David", BigDecimal.valueOf(630000));
-        Account fourth = accountRepository.createAccount("Steve", BigDecimal.valueOf(356000));
+        var first = accountRepository.createAccount("Mike", BigDecimal.valueOf(622600));
+        var second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(2315000));
+        var third = accountRepository.createAccount("David", BigDecimal.valueOf(630000));
+        var fourth = accountRepository.createAccount("Steve", BigDecimal.valueOf(356000));
 
-        BigDecimal startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
+        var startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
                 .add(fourth.getBalance());
 
         ExecutorUtils.runConcurrently(
@@ -51,12 +51,12 @@ public class AppTest extends BaseTest {
 
         );
 
-        Account firstInTheEnd = accountRepository.retrieveAccountById(first.getId());
-        Account secondInTheEnd = accountRepository.retrieveAccountById(second.getId());
-        Account thirdInTheEnd = accountRepository.retrieveAccountById(third.getId());
-        Account fourthInTheEnd = accountRepository.retrieveAccountById(fourth.getId());
+        var firstInTheEnd = accountRepository.retrieveAccountById(first.getId());
+        var secondInTheEnd = accountRepository.retrieveAccountById(second.getId());
+        var thirdInTheEnd = accountRepository.retrieveAccountById(third.getId());
+        var fourthInTheEnd = accountRepository.retrieveAccountById(fourth.getId());
 
-        BigDecimal endingTotal = firstInTheEnd.getBalance().add(secondInTheEnd.getBalance()).add(thirdInTheEnd.getBalance())
+        var endingTotal = firstInTheEnd.getBalance().add(secondInTheEnd.getBalance()).add(thirdInTheEnd.getBalance())
                 .add(fourthInTheEnd.getBalance());
 
         Assert.assertTrue("Balance can't be less than zero",
@@ -95,7 +95,7 @@ public class AppTest extends BaseTest {
     public void testNonNegativeBalance() {
         final int times = 600;
 
-        AtomicInteger i = new AtomicInteger(times);
+        var i = new AtomicInteger(times);
         IntStream.range(0, times).parallel().forEach(ignored ->
         {
             while (i.get() >= 0) {
@@ -123,22 +123,22 @@ public class AppTest extends BaseTest {
 
     private static Account getRandomAccount() {
         int acc = RandomUtils.getGtZeroRandom(3, accounts.size());
-        Account account = accounts.get(acc);
+        var account = accounts.get(acc);
         Objects.requireNonNull(account, "Account can't be null. Check your data!");
         return account;
     }
 
     private static Account getAccount(int acc) {
-        Account account = accounts.get(acc);
+        var account = accounts.get(acc);
         Objects.requireNonNull(account, "Account can't be null. Check your data!");
         return account;
     }
 
 
     private static Account getAccountFromDb(int acc) {
-        Account account = accounts.get(acc);
+        var account = accounts.get(acc);
         Objects.requireNonNull(account, "Account can't be null. Check your data!");
-        Account updatedAccount = accountRepository.retrieveAccountById(account.getId());
+        var updatedAccount = accountRepository.retrieveAccountById(account.getId());
         return updatedAccount;
     }
 
