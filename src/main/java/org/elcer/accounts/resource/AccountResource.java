@@ -37,7 +37,7 @@ public class AccountResource {
     @Path("/{name:[a-zA-Z]+}")
     public Response getAccountByName(@PathParam("name") String name) {
         var accounts = accountService.getAccounts(name);
-        var accountResponse = AccountListResponse.builder().accounts(accounts).build();
+        var accountResponse = new AccountListResponse().setAccounts(accounts);
         return Response.ok(accountResponse).build();
     }
 
@@ -45,8 +45,8 @@ public class AccountResource {
     @Path("/{id:\\d+}")
     public Response getAccount(@PathParam("id") Long id) {
         var account = accountService.getAccounts(id);
-        AccountResponse accountResponse = new AccountResponse();
-        accountResponse.setAccount(account);
+        AccountResponse accountResponse = new AccountResponse()
+                .setAccount(account);
         return Response.ok(accountResponse).build();
 
     }

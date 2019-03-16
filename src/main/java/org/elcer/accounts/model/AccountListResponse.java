@@ -1,12 +1,13 @@
 package org.elcer.accounts.model;
 
 import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 
 
-@Value
-@Builder
+@Data
+@Accessors(chain = true)
 public class AccountListResponse {
-    List<Account> accounts;
+    private List<Account> accounts;
 }

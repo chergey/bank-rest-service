@@ -2,27 +2,33 @@ package org.elcer.accounts;
 
 import io.restassured.internal.RestAssuredResponseImpl;
 import io.restassured.response.ResponseBody;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.elcer.accounts.model.Account;
+import org.elcer.accounts.model.AccountListResponse;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.utils.RandomUtils;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
 import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 
-public class AccountResourceTest extends BaseTest {
 
+@Slf4j
+public class AccountResourceTest extends BaseTest {
 
     @Test
     public void testAccountTransferSuccessfully() {
         String url = "api/account/transfer?from=1&to=2&amount=10";
-        logger.info(url);
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class), AccountResponse.success());
+        Assert.assertEquals(AccountResponse.success(), body.as(AccountResponse.class));
+
+        assertHttpStatus(body, Response.Status.OK.getStatusCode());
 
     }
 
@@ -31,7 +37,7 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=&to=&amount=";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        assertHttpStatus(body, 400);
+        assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
 
     }
@@ -41,7 +47,9 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=1&amount=999999";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.notEnoughFunds().getCode());
+        Assert.assertEquals(AccountResponse.notEnoughFunds().getCode(), body.as(AccountResponse.class).getCode());
+
+        assertHttpStatus(body, Response.Status.ACCEPTED.getStatusCode());
     }
 
     @Test
@@ -49,8 +57,8 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=2&amount=100";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.debitAccountIsCreditAccount().getCode());
-        assertHttpStatus(body, 400);
+        Assert.assertEquals(AccountResponse.debitAccountIsCreditAccount().getCode(), body.as(AccountResponse.class).getCode());
+        assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
     }
 
 
@@ -59,8 +67,9 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/transfer?from=2&to=1&amount=-100";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.negativeAmount().getCode());
-        assertHttpStatus(body, 400);
+        Assert.assertEquals(AccountResponse.negativeAmount().getCode(), body.as(AccountResponse.class).getCode());
+
+        assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
     }
 
@@ -72,18 +81,36 @@ public class AccountResourceTest extends BaseTest {
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
         AccountResponse accountResponse = body.as(AccountResponse.class);
 
-        Assert.assertNotNull(accountResponse.getAccount());
-        Assert.assertEquals(accountResponse.getAccount().getId(), 1);
+        Assert.assertNotNull("No account in reponse", accountResponse.getAccount());
+        Assert.assertEquals(1, accountResponse.getAccount().getId());
+
+        assertHttpStatus(body, Response.Status.OK.getStatusCode());
+
+    }
+
+    @Test
+    public void testGetAccountByName() {
+
+        String name = accounts.get(0).getName();
+        String url = "api/account/" + name;
+
+        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
+        AccountListResponse accountResponse = body.as(AccountListResponse.class);
+        Assert.assertTrue("No accounts in reponse", CollectionUtils.isNotEmpty(accountResponse.getAccounts()));
+        Assert.assertEquals(name, accountResponse.getAccounts().get(0).getName());
+
+        assertHttpStatus(body, Response.Status.OK.getStatusCode());
+
     }
 
 
     @Test
-    public void testGetAccountById400() {
+    public void testGetAccountByIdMissingNameOrIdParam() {
         String url = "api/account/";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
 
-        assertHttpStatus(body, 404);
+        assertHttpStatus(body, Response.Status.NOT_FOUND.getStatusCode());
 
 
     }
@@ -93,9 +120,10 @@ public class AccountResourceTest extends BaseTest {
         String url = "api/account/99999";
 
         ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        assertHttpStatus(body, 404);
 
-        Assert.assertEquals(body.as(AccountResponse.class).getCode(), AccountResponse.noSuchAccount().getCode());
+        assertHttpStatus(body, Response.Status.NOT_FOUND.getStatusCode());
+
+        Assert.assertEquals(AccountResponse.noSuchAccount().getCode(), body.as(AccountResponse.class).getCode());
 
 
     }

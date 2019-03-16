@@ -15,7 +15,7 @@ import org.glassfish.jersey.servlet.ServletProperties;
 @Slf4j
 public class RunnerUtils {
 
-    public static final int DEFAULT_PORT = 8082;
+    public static final int DEFAULT_PORT = 8083;
 
 
     public static void startServer(int port) {

@@ -1,5 +1,6 @@
 package org.elcer.accounts;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.utils.RandomUtils;
@@ -15,8 +16,8 @@ import java.util.stream.IntStream;
 
 
 @RunWith(RepeatableRunner.class)
+@Slf4j
 public class AppTest extends BaseTest {
-
 
     @Repeat(2)
     @Test
@@ -79,7 +80,7 @@ public class AppTest extends BaseTest {
                 accountService.transfer(debit.getId(), credit.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
             } catch (Exception e) {
                 if (e instanceof NotEnoughFundsException) {
-                    logger.info("Not enough money left in {}, stopping", debit.getId());
+                    log.info("Not enough money left in {}, stopping", debit.getId());
                     break;
                 }
                 throw e;
