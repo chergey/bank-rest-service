@@ -9,6 +9,6 @@ public class EclipseLinkSessionCustomizer implements SessionCustomizer {
     @Override
     public void customize(Session session) {
         DatabaseLogin databaseLogin = (DatabaseLogin) session.getDatasourceLogin();
-        databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_REPEATABLE_READ);
+        databaseLogin.setTransactionIsolation(DatabaseLogin.TRANSACTION_SERIALIZABLE);
     }
 }

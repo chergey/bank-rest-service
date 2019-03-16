@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class BaseTest {
 
     protected static final Logger logger = LoggerFactory.getLogger(AppTest.class);

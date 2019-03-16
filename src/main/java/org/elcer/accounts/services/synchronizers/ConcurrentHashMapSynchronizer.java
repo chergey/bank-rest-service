@@ -1,4 +1,7 @@
-package org.elcer.accounts.services;
+package org.elcer.accounts.services.synchronizers;
+
+import org.elcer.accounts.services.CompareStrategy;
+import org.elcer.accounts.services.Synchronizer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

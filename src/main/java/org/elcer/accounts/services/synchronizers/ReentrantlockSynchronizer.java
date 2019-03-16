@@ -1,4 +1,7 @@
-package org.elcer.accounts.services;
+package org.elcer.accounts.services.synchronizers;
+
+import org.elcer.accounts.services.CompareStrategy;
+import org.elcer.accounts.services.Synchronizer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +22,6 @@ public class ReentrantlockSynchronizer<T extends Comparable<T>> implements Synch
             (candidate1, candidate2) -> candidate1.compareTo(candidate2) > 0;
 
     @Override
-    @SuppressWarnings("all")
     public void withLock(final T one, final T second, Runnable action) {
         final Lock o1 = slots.computeIfAbsent(one, (k) -> new ReentrantLock()),
                 o2 = slots.computeIfAbsent(second, (k) -> new ReentrantLock());

@@ -60,7 +60,6 @@ public class ExceptionUtils {
         void run() throws Exception;
     }
 
-    @SuppressWarnings("unchecked")
     public static void sneakyThrow(ThrowingRunnable runnable) {
         try {
             runnable.run();

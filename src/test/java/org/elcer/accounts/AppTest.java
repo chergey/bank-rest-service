@@ -23,9 +23,9 @@ public class AppTest extends BaseTest {
     public void testConcurrencyAndDeadlocks() {
         final int times = 14000;
 
-        Account first = accountRepository.createAccount("Mike", BigDecimal.valueOf(32600));
-        Account second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(315000));
-        Account third = accountRepository.createAccount("David", BigDecimal.valueOf(13000));
+        Account first = accountRepository.createAccount("Mike", BigDecimal.valueOf(622600));
+        Account second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(2315000));
+        Account third = accountRepository.createAccount("David", BigDecimal.valueOf(630000));
         Account fourth = accountRepository.createAccount("Steve", BigDecimal.valueOf(356000));
 
         BigDecimal startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
@@ -36,18 +36,18 @@ public class AppTest extends BaseTest {
                 () -> transfer(times, second, first),
                 () -> transfer(times, third, second),
 
-                //  () -> transfer(times, second, fourth),
+                () -> transfer(times, second, fourth),
                 () -> transfer(times, second, third),
                 () -> transfer(times, first, third),
-                //    () -> transfer(times, first, fourth),
+                () -> transfer(times, first, fourth),
 
                 () -> transfer(times, third, second),
-                () -> transfer(times, third, first)
-                //    () -> transfer(times, third, fourth)
+                () -> transfer(times, third, first),
+                () -> transfer(times, third, fourth),
 
-//                () -> transfer(times, fourth, first),
-//                () -> transfer(times, fourth, second),
-//                () -> transfer(times, fourth, third)
+                () -> transfer(times, fourth, first),
+                () -> transfer(times, fourth, second),
+                () -> transfer(times, fourth, third)
 
         );
 
@@ -76,7 +76,7 @@ public class AppTest extends BaseTest {
         int i = times;
         while (i-- >= 0) {
             try {
-                accountService.transfer(debit.getId(), credit.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandomL()));
+                accountService.transfer(debit.getId(), credit.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
             } catch (Exception e) {
                 if (e instanceof NotEnoughFundsException) {
                     logger.info("Not enough money left in {}, stopping", debit.getId());

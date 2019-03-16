@@ -35,12 +35,14 @@ public class AccountService {
             synchronizer.withLock(from, to, () -> {
 
                 Account debitAccount, creditAccount;
-                debitAccount = accountRepository.retrieveAccountByIdWithTran(tran, from);
-                creditAccount = accountRepository.retrieveAccountByIdWithTran(tran, to);
+                debitAccount = accountRepository.retrieveAccountById(tran, from);
+                creditAccount = accountRepository.retrieveAccountById(tran, to);
 
                 if (debitAccount.getBalance().compareTo(amount) >= 0) {
-                    accountRepository.updateAccountWithTran(tran, debitAccount, amount.negate());
-                    accountRepository.updateAccountWithTran(tran, creditAccount, amount);
+                    accountRepository.setBalance(tran, debitAccount,
+                            debitAccount.getBalance().subtract(amount));
+                    accountRepository.setBalance(tran, creditAccount,
+                            creditAccount.getBalance().add(amount));
                     tran.commit();
 
                 } else {
@@ -51,6 +53,9 @@ public class AccountService {
             logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
         }
     }
+
+
+
 
     public Account getAccounts(long id) {
         return accountRepository.retrieveAccountById(id);

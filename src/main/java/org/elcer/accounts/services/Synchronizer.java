@@ -2,6 +2,7 @@ package org.elcer.accounts.services;
 
 
 import org.elcer.accounts.hk2.annotations.Component;
+import org.elcer.accounts.services.synchronizers.ReentrantlockSynchronizer;
 
 /**
  * Synchcronizer used to manage concurrent operations
