@@ -6,6 +6,7 @@ import eu.infomas.annotation.AnnotationDetector;
 import gov.va.oia.HK2Utilities.AnnotatedClasses;
 import gov.va.oia.HK2Utilities.AnnotationReporter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Eager;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -13,8 +14,6 @@ import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.ApplicationPath;
@@ -23,9 +22,9 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 
 @ApplicationPath("/")
+@Slf4j
 public class AppConfig extends ResourceConfig {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
 
     @VisibleForTesting
     @SneakyThrows
@@ -58,7 +57,7 @@ public class AppConfig extends ResourceConfig {
             cf.detect(PACKAGE_NAME);
             annotatedClasses = ac.getAnnotatedClasses();
         } catch (Exception e) {
-            logger.error("Error while scanning packages", e);
+            log.error("Error while scanning packages", e);
         }
 
         Class[] classes = Arrays.stream(annotatedClasses)

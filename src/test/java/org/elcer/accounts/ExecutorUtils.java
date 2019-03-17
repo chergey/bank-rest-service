@@ -17,7 +17,7 @@ public class ExecutorUtils {
 
     @SneakyThrows
     public static void runConcurrently(Runnable... tasks) {
-        if (tasks.length == 0)
+        if (tasks == null || tasks.length == 0)
             throw new IllegalArgumentException("number of tasks must be > 0");
 
         var executor = Executors.newFixedThreadPool(tasks.length);

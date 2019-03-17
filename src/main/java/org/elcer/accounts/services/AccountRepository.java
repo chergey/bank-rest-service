@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
-public class AccountRepository  {
+public class AccountRepository {
 
     @PersistenceUnit(name = "accounts")
     @Inject
@@ -49,6 +49,15 @@ public class AccountRepository  {
     @VisibleForTesting
     public List<Account> getAllAccounts() {
         return wrapInTran((Function<Transaction, List<Account>>) this::getAllAccounts);
+    }
+
+    @VisibleForTesting
+    public List<Account> getAllAccountsNoTran() {
+        var em = efFactory.createEntityManager();
+        var builder = em.getCriteriaBuilder();
+        var q = builder.createQuery(Account.class);
+        var query = em.createQuery(q);
+        return query.getResultList();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -119,7 +128,6 @@ public class AccountRepository  {
     }
 
 
-
     private void _addBalance(EntityManager em, Account account, BigDecimal amount) {
         var builder = em.getCriteriaBuilder();
         var update = builder.createCriteriaUpdate(Account.class);
@@ -132,7 +140,6 @@ public class AccountRepository  {
         Query query = em.createQuery(update);
         query.executeUpdate();
     }
-
 
 
     //Automatic resource disposing
