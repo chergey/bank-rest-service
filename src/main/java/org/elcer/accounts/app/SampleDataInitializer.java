@@ -1,9 +1,10 @@
 package org.elcer.accounts.app;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Eager;
 import org.elcer.accounts.services.AccountRepository;
-import org.elcer.accounts.utils.RandomUtils;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -25,9 +26,9 @@ public class SampleDataInitializer {
     public void init() {
         if (init) return;
         try {
-            for (int i = 1; i < ACCOUNS_TO_CREATE; i++) {
-                accountRepository.createAccount(RandomUtils.nextString(10),
-                        BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
+            for (int i = 0; i < ACCOUNS_TO_CREATE; i++) {
+                accountRepository.createAccount(RandomStringUtils.randomAlphabetic(5),
+                        BigDecimal.valueOf(RandomUtils.nextLong(100,1000)));
             }
         } finally {
             init = true;

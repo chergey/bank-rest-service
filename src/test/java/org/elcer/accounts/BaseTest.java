@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 public abstract class BaseTest {
 
-    protected static List<Account> accounts;
+    protected static List<Account> accounts = new ArrayList<>();
 
     protected static AccountService accountService;
     protected static AccountRepository accountRepository;
@@ -32,7 +32,7 @@ public abstract class BaseTest {
 
         server = RunnerUtils.startServer(RunnerUtils.DEFAULT_PORT, false);
         //wait
-        Thread.sleep(6000);
+        Thread.sleep(2000);
 
         accountService = AppConfig.getServiceLocator().getService(AccountService.class);
         accountRepository = AppConfig.getServiceLocator().getService(AccountRepository.class);

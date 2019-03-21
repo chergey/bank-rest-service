@@ -1,18 +1,14 @@
 package org.elcer.accounts;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.Account;
-import org.elcer.accounts.utils.RandomUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.math.BigDecimal;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 
 @RunWith(RepeatableRunner.class)
@@ -42,7 +38,6 @@ public class AppTest extends BaseTest {
                 () -> transfer(times, first, third),
                 () -> transfer(times, first, fourth),
 
-                () -> transfer(times, third, second),
                 () -> transfer(times, third, first),
                 () -> transfer(times, third, fourth),
 
@@ -77,7 +72,8 @@ public class AppTest extends BaseTest {
         int i = times;
         while (i-- >= 0) {
             try {
-                accountService.transfer(debit.getId(), credit.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
+                accountService.transfer(debit.getId(), credit.getId(),
+                        BigDecimal.valueOf(RandomUtils.nextInt(100,10000)));
             } catch (Exception e) {
                 if (e instanceof NotEnoughFundsException) {
                     log.info("Not enough money left in {}, stopping", debit.getId());
@@ -88,60 +84,6 @@ public class AppTest extends BaseTest {
         }
     }
 
-
-    @Ignore
-    @Test
-    @Repeat(2)
-    //TODO: remove
-    public void testNonNegativeBalance() {
-        final int times = 600;
-
-        var i = new AtomicInteger(times);
-        IntStream.range(0, times).parallel().forEach(ignored ->
-        {
-            while (i.get() >= 0) {
-                Account from = getRandomAccount();
-                Account to = getRandomAccount();
-                if (from == to) {
-                    continue;
-                }
-
-                try {
-                    accountService.transfer(from.getId(), to.getId(), BigDecimal.valueOf(RandomUtils.getGtZeroRandom()));
-                } catch (Exception e) {
-                    continue;
-                }
-                i.decrementAndGet();
-
-            }
-        });
-
-        Assert.assertTrue("Oops, account must not end up with negative balance.",
-                accountRepository.getAllAccounts().stream().noneMatch(a -> a.getBalance().compareTo(BigDecimal.ZERO) < 0)
-        );
-    }
-
-
-    private static Account getRandomAccount() {
-        int acc = RandomUtils.getGtZeroRandom(3, accounts.size());
-        var account = accounts.get(acc);
-        Objects.requireNonNull(account, "Account can't be null. Check your data!");
-        return account;
-    }
-
-    private static Account getAccount(int acc) {
-        var account = accounts.get(acc);
-        Objects.requireNonNull(account, "Account can't be null. Check your data!");
-        return account;
-    }
-
-
-    private static Account getAccountFromDb(int acc) {
-        var account = accounts.get(acc);
-        Objects.requireNonNull(account, "Account can't be null. Check your data!");
-        var updatedAccount = accountRepository.retrieveAccountById(account.getId());
-        return updatedAccount;
-    }
 
 
 }

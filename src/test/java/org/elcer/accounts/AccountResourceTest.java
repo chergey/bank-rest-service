@@ -4,16 +4,13 @@ import io.restassured.internal.RestAssuredResponseImpl;
 import io.restassured.response.ResponseBody;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountListResponse;
 import org.elcer.accounts.model.AccountResponse;
-import org.elcer.accounts.utils.RandomUtils;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
 
@@ -135,12 +132,5 @@ public class AccountResourceTest extends BaseTest {
     }
 
 
-    private static Account getRandomAccountFromDb() {
-        int acc = RandomUtils.getGtZeroRandom(accounts.size());
-        Account account = accounts.get(acc);
-        Objects.requireNonNull(account, "Account can't be null. Check your data!");
-        Account updatedAccount = accountRepository.retrieveAccountById(account.getId());
-        return updatedAccount;
-    }
 
 }
