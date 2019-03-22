@@ -12,6 +12,7 @@ import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.inject.Inject;
 import javax.persistence.*;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,11 +35,7 @@ public class AccountRepository {
 
     @VisibleForTesting
     public Account createAccount(String name, BigDecimal amount) {
-        var account = new Account(name, amount);
-        return wrapInTran(tran -> {
-            tran.getEm().persist(account);
-            return account;
-        });
+        return createAccount(new Account(name, amount));
     }
 
 
@@ -64,6 +61,8 @@ public class AccountRepository {
     List<Account> getAllAccounts(Transaction tran) {
         var builder = tran.getEm().getCriteriaBuilder();
         var q = builder.createQuery(Account.class);
+        Root<Account> root = q.from(Account.class);
+        q.select(root);
         var query = tran.getEm().createQuery(q);
         return query.getResultList();
     }

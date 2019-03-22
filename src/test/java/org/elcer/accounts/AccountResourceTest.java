@@ -1,9 +1,13 @@
 package org.elcer.accounts;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.http.ContentType;
 import io.restassured.internal.RestAssuredResponseImpl;
 import io.restassured.response.ResponseBody;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountListResponse;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.utils.RunnerUtils;
@@ -12,11 +16,28 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+
 import static io.restassured.RestAssured.given;
 
 
 @Slf4j
 public class AccountResourceTest extends BaseTest {
+
+    @Test
+    public void testCreateAccount() throws IOException {
+        String url = "api/account/create";
+        Account account = new Account("Daniel", BigDecimal.valueOf(10000));
+        String serialized = serialize(account);
+        ResponseBody body = given()
+                .contentType(ContentType.JSON)
+                .body(serialized)
+                .when().port(RunnerUtils.DEFAULT_PORT)
+                .post(url).body();
+        assertHttpStatus(body, 201);
+
+    }
 
     @Test
     public void testAccountTransferSuccessfully() {
@@ -132,5 +153,18 @@ public class AccountResourceTest extends BaseTest {
     }
 
 
+    private static <T> Object deserialize(String json, Class<T> objectClass) throws IOException {
+        ObjectMapper mapper = new ObjectMapper().
+                setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+        return mapper.readValue(json, objectClass);
+    }
+
+
+    private static String serialize(Object object) throws IOException {
+        ObjectMapper mapper = new ObjectMapper().
+                setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        return mapper.writeValueAsString(object);
+    }
 }

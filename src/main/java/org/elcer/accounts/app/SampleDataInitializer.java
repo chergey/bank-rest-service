@@ -20,13 +20,13 @@ public class SampleDataInitializer {
 
     private boolean init;
 
-    private static final int ACCOUNS_TO_CREATE = 1000;
+    private static final int ACCOUNTS_TO_CREATE = 1000;
 
     @PostConstruct
     public void init() {
         if (init) return;
         try {
-            for (int i = 0; i < ACCOUNS_TO_CREATE; i++) {
+            for (int i = 0; i < ACCOUNTS_TO_CREATE; i++) {
                 accountRepository.createAccount(RandomStringUtils.randomAlphabetic(5),
                         BigDecimal.valueOf(RandomUtils.nextLong(100,1000)));
             }

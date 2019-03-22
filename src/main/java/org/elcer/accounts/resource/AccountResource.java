@@ -1,18 +1,20 @@
 package org.elcer.accounts.resource;
 
 
+import org.elcer.accounts.hk2.annotations.Required;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountListResponse;
 import org.elcer.accounts.model.AccountResponse;
 import org.elcer.accounts.services.AccountService;
-import org.elcer.accounts.hk2.annotations.Required;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
-import java.util.List;
 
 @Path("/api/account")
 @Produces({MediaType.APPLICATION_JSON})
@@ -29,6 +31,7 @@ public class AccountResource {
     @Path("/create")
     public Response createAccount(Account account) {
         var builder = uriInfo.getAbsolutePathBuilder();
+        accountService.createAccount(account);
         builder.path(Long.toString(account.getId()));
         return Response.created(builder.build()).build();
     }
