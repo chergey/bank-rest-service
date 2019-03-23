@@ -64,7 +64,7 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
 
             if (!requiredParametersValueMissing.isEmpty()) {
                 throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                        .entity(String.format("%s missing", String.join(",", requiredParametersValueMissing)))
+                        .entity(String.format("Parameter %s missing", String.join(",", requiredParametersValueMissing)))
                         .build());
             }
         }

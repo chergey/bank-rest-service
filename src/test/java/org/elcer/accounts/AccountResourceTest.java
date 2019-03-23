@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.AccountListResponse;
-import org.elcer.accounts.model.AccountResponse;
+import org.elcer.accounts.model.TransferResponse;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,35 +26,48 @@ import static io.restassured.RestAssured.given;
 public class AccountResourceTest extends BaseTest {
 
     @Test
+    public void testDeleteAccount() {
+        ResponseBody body = given()
+                .contentType(ContentType.JSON)
+                .when().port(RunnerUtils.DEFAULT_PORT)
+                .delete("api/accounts/2").body();
+        assertHttpStatus(body, 200);
+
+    }
+
+
+    @Test
     public void testCreateAccount() throws IOException {
-        String url = "api/account/create";
         Account account = new Account("Daniel", BigDecimal.valueOf(10000));
         String serialized = serialize(account);
         ResponseBody body = given()
                 .contentType(ContentType.JSON)
                 .body(serialized)
                 .when().port(RunnerUtils.DEFAULT_PORT)
-                .post(url).body();
+                .post("api/accounts/").body();
         assertHttpStatus(body, 201);
 
     }
 
     @Test
     public void testAccountTransferSuccessfully() {
-        String url = "api/account/transfer?from=1&to=2&amount=10";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(AccountResponse.success(), body.as(AccountResponse.class));
-
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/transfer?from=1&to=2&amount=10")
+                .body();
         assertHttpStatus(body, Response.Status.OK.getStatusCode());
+
+        Assert.assertEquals(TransferResponse.success(), body.as(TransferResponse.class));
+
 
     }
 
     @Test
     public void testAccountTransfer400() {
-        String url = "api/account/transfer?from=&to=&amount=";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/transfer?from=&to=&amount=")
+                .body();
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
 
@@ -62,87 +75,101 @@ public class AccountResourceTest extends BaseTest {
 
     @Test
     public void testAccountTransferNotEnoughFunds() {
-        String url = "api/account/transfer?from=2&to=1&amount=999999";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(AccountResponse.notEnoughFunds().getCode(), body.as(AccountResponse.class).getCode());
-
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/transfer?from=3&to=1&amount=999999")
+                .body();
         assertHttpStatus(body, Response.Status.ACCEPTED.getStatusCode());
+
+        Assert.assertEquals(TransferResponse.notEnoughFunds().getCode(), body.as(TransferResponse.class).getCode());
+
     }
 
     @Test
     public void testAccountTransferSame() {
-        String url = "api/account/transfer?from=2&to=2&amount=100";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(AccountResponse.debitAccountIsCreditAccount().getCode(), body.as(AccountResponse.class).getCode());
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/transfer?from=2&to=2&amount=100")
+                .body();
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
+
+        Assert.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(), body.as(TransferResponse.class).getCode());
     }
 
 
     @Test
     public void testAccountNegativeAmount() {
-        String url = "api/account/transfer?from=2&to=1&amount=-100";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        Assert.assertEquals(AccountResponse.negativeAmount().getCode(), body.as(AccountResponse.class).getCode());
-
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/transfer?from=2&to=1&amount=-100").body();
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
+
+        Assert.assertEquals(TransferResponse.negativeAmount().getCode(), body.as(TransferResponse.class).getCode());
+
 
     }
 
 
     @Test
     public void testGetAccountById() {
-        String url = "api/account/1";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        AccountResponse accountResponse = body.as(AccountResponse.class);
-
-        Assert.assertNotNull("No account in reponse", accountResponse.getAccount());
-        Assert.assertEquals(1, accountResponse.getAccount().getId());
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/1")
+                .body();
 
         assertHttpStatus(body, Response.Status.OK.getStatusCode());
+
+        Account account = body.as(Account.class);
+
+        Assert.assertNotNull("No account in reponse", account);
+        Assert.assertEquals(1, account.getId());
+
 
     }
 
     @Test
     public void testGetAccountByName() {
-
         String name = accounts.get(0).getName();
-        String url = "api/account/" + name;
 
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
-        AccountListResponse accountResponse = body.as(AccountListResponse.class);
-        Assert.assertTrue("No accounts in reponse", CollectionUtils.isNotEmpty(accountResponse.getAccounts()));
-        Assert.assertEquals(name, accountResponse.getAccounts().get(0).getName());
+        String url = String.format("api/accounts/%s?page=0&size=10", name);
+
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get(url)
+                .body();
 
         assertHttpStatus(body, Response.Status.OK.getStatusCode());
 
+        AccountListResponse accountResponse = body.as(AccountListResponse.class);
+        Assert.assertTrue("No accounts in response", CollectionUtils.isNotEmpty(accountResponse.getAccounts()));
+        Assert.assertEquals(name, accountResponse.getAccounts().get(0).getName());
     }
 
 
     @Test
-    public void testGetAccountByIdMissingNameOrIdParam() {
-        String url = "api/account/";
+    public void testGetAllAccounts() {
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts?page=0&size=10")
+                .body();
 
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
+        assertHttpStatus(body, Response.Status.OK.getStatusCode());
 
-        assertHttpStatus(body, Response.Status.NOT_FOUND.getStatusCode());
-
+        AccountListResponse accountResponse = body.as(AccountListResponse.class);
+        Assert.assertTrue("No accounts in response", CollectionUtils.isNotEmpty(accountResponse.getAccounts()));
 
     }
 
     @Test
     public void testNoSuchAccount() {
-        String url = "api/account/99999";
-
-        ResponseBody body = given().when().port(RunnerUtils.DEFAULT_PORT).get(url).body();
+        ResponseBody body = given().when()
+                .port(RunnerUtils.DEFAULT_PORT)
+                .get("api/accounts/99999")
+                .body();
 
         assertHttpStatus(body, Response.Status.NOT_FOUND.getStatusCode());
 
-        Assert.assertEquals(AccountResponse.noSuchAccount().getCode(), body.as(AccountResponse.class).getCode());
-
+        Assert.assertEquals(TransferResponse.noSuchAccount().getCode(), body.as(TransferResponse.class).getCode());
 
     }
 

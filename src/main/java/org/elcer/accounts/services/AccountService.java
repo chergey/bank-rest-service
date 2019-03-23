@@ -53,7 +53,7 @@ public class AccountService {
     }
 
 
-    public Account getAccounts(long id) {
+    public Account getAccount(long id) {
         return accountRepository.retrieveAccountById(id);
     }
 
@@ -61,8 +61,31 @@ public class AccountService {
         return accountRepository.createAccount(account);
     }
 
-    public List<Account> getAccounts(String name) {
-        return accountRepository.retrieveAccountsByName(name);
+
+    public void deleteAccount(long id) {
+        accountRepository.deleteAccount(id);
+    }
+
+    public void replaceAccount(long id, Account account) {
+        try (var tran = accountRepository.beginTran()) {
+            Account oldAccount = accountRepository.retrieveAccountById(tran, id);
+            if (oldAccount != null) {
+                accountRepository.deleteAccount(tran, id);
+                account.setId(id);
+                accountRepository.createAccount(tran, account);
+            } else {
+                account.setId(id);
+                accountRepository.createAccount(tran, account);
+            }
+        }
+    }
+
+    public List<Account> getAllAccounts(int page, int size) {
+        return accountRepository.getAllAccounts(page, size);
+    }
+
+    public List<Account> getAccounts(String name, int page, int size) {
+        return accountRepository.retrieveAccountsByName(name, page, size);
     }
 }
 

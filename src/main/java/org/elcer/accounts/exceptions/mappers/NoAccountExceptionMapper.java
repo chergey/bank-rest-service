@@ -1,7 +1,7 @@
 package org.elcer.accounts.exceptions.mappers;
 
 import org.elcer.accounts.exceptions.AccountNotFoundException;
-import org.elcer.accounts.model.AccountResponse;
+import org.elcer.accounts.model.TransferResponse;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -13,7 +13,7 @@ public class NoAccountExceptionMapper implements ExceptionMapper<AccountNotFound
     @Override
     public Response toResponse(AccountNotFoundException exception) {
         return Response.status(Response.Status.NOT_FOUND)
-                .entity(AccountResponse.noSuchAccount().addAccountId(exception.getAccountId()))
+                .entity(TransferResponse.noSuchAccount().addAccountId(exception.getAccountId()))
                 .build();
     }
 }

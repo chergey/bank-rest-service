@@ -10,4 +10,5 @@ import java.util.List;
 @Accessors(chain = true)
 public class AccountListResponse {
     private List<Account> accounts;
+    private boolean noMore;
 }

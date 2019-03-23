@@ -12,6 +12,7 @@ import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.inject.Inject;
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
+@SuppressWarnings("WeakerAccess")
 public class AccountRepository {
 
     @PersistenceUnit(name = "accounts")
@@ -33,6 +35,12 @@ public class AccountRepository {
         });
     }
 
+    public Account createAccount(Transaction tran, Account account) {
+        tran.getEm().persist(account);
+        return account;
+    }
+
+
     @VisibleForTesting
     public Account createAccount(String name, BigDecimal amount) {
         return createAccount(new Account(name, amount));
@@ -44,26 +52,20 @@ public class AccountRepository {
     }
 
     @VisibleForTesting
-    public List<Account> getAllAccounts() {
-        return wrapInTran((Function<Transaction, List<Account>>) this::getAllAccounts);
+    public List<Account> getAllAccounts(int page, int size) {
+        return wrapInTran((Function<Transaction, List<Account>>) tran ->
+                getAllAccounts(tran, page, size));
     }
 
-    @VisibleForTesting
-    public List<Account> getAllAccountsNoTran() {
-        var em = efFactory.createEntityManager();
-        var builder = em.getCriteriaBuilder();
-        var q = builder.createQuery(Account.class);
-        var query = em.createQuery(q);
-        return query.getResultList();
-    }
 
-    @SuppressWarnings("WeakerAccess")
-    List<Account> getAllAccounts(Transaction tran) {
+    List<Account> getAllAccounts(Transaction tran, int page, int size) {
         var builder = tran.getEm().getCriteriaBuilder();
         var q = builder.createQuery(Account.class);
         Root<Account> root = q.from(Account.class);
         q.select(root);
         var query = tran.getEm().createQuery(q);
+        query.setFirstResult(page * size);
+        query.setMaxResults(size);
         return query.getResultList();
     }
 
@@ -72,18 +74,20 @@ public class AccountRepository {
                 tran -> retrieveAccountById(tran, id));
     }
 
-    public List<Account> retrieveAccountsByName(String name) {
+    public List<Account> retrieveAccountsByName(String name, int page, int size) {
         return wrapInTran((Function<Transaction, List<Account>>)
-                tran -> retrieveAccountByName(tran, name));
+                tran -> retrieveAccountByName(tran, name, page, size));
     }
 
-    private List<Account> retrieveAccountByName(Transaction tran, String name) {
-        return _retrieveAccountsByName(tran.getEm(), name);
+    private List<Account> retrieveAccountByName(Transaction tran, String name, int page, int size) {
+        return _retrieveAccountsByName(tran.getEm(), name, page, size);
     }
 
-    private List<Account> _retrieveAccountsByName(EntityManager em, String name) {
+    private List<Account> _retrieveAccountsByName(EntityManager em, String name, int page, int size) {
         return CriteriaUtils.createQuery(em, Account.class,
                 (builder, root) -> builder.equal(root.get("name"), name))
+                .setFirstResult(page * size)
+                .setMaxResults(size)
                 .getResultList();
 
     }
@@ -106,11 +110,11 @@ public class AccountRepository {
         wrapInTran((Consumer<Transaction>) tran -> addBalance(tran, account, balance));
     }
 
-    void setBalance(Transaction tran, Account account, BigDecimal amount) {
+    public void setBalance(Transaction tran, Account account, BigDecimal amount) {
         _setBalance(tran.getEm(), account, amount);
     }
 
-    void addBalance(Transaction tran, Account account, BigDecimal amount) {
+    public void addBalance(Transaction tran, Account account, BigDecimal amount) {
         _addBalance(tran.getEm(), account, amount);
     }
 
@@ -138,6 +142,20 @@ public class AccountRepository {
         update.where(builder.equal(root.get("id"), account.getId()));
         Query query = em.createQuery(update);
         query.executeUpdate();
+    }
+
+
+    public void deleteAccount(long id) {
+        wrapInTran((Consumer<Transaction>) tran -> deleteAccount(tran, id));
+    }
+
+    public void deleteAccount(Transaction tran, long id) {
+        var builder = tran.getEm().getCriteriaBuilder();
+        CriteriaDelete<Account> delete = builder.createCriteriaDelete(Account.class);
+        Root<Account> root = delete.from(Account.class);
+        delete.where(builder.equal(root.get("id"), id));
+        tran.getEm().createQuery(delete).executeUpdate();
+
     }
 
 

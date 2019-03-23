@@ -36,7 +36,7 @@ public abstract class BaseTest {
 
         accountService = AppConfig.getServiceLocator().getService(AccountService.class);
         accountRepository = AppConfig.getServiceLocator().getService(AccountRepository.class);
-        accounts = accountRepository.getAllAccounts();
+        accounts = accountRepository.getAllAccounts(0, 1000);
 
         Assert.assertTrue("Accounts not initialized", CollectionUtils.isNotEmpty(accounts));
         System.out.println("Accounts created: " + accounts.size());
@@ -46,7 +46,8 @@ public abstract class BaseTest {
     @AfterClass
     @SneakyThrows
     public static void tearDown() {
-        server.stop();
+        if (server != null)
+            server.stop();
     }
 
 }

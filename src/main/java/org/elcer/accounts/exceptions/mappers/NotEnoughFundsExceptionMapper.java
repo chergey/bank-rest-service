@@ -1,7 +1,7 @@
 package org.elcer.accounts.exceptions.mappers;
 
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
-import org.elcer.accounts.model.AccountResponse;
+import org.elcer.accounts.model.TransferResponse;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -12,7 +12,7 @@ public class NotEnoughFundsExceptionMapper implements ExceptionMapper<NotEnoughF
     @Override
     public Response toResponse(NotEnoughFundsException exception) {
         return Response.status(Response.Status.ACCEPTED)
-                .entity(AccountResponse.notEnoughFunds().addAccountId(exception.getAccountId()))
+                .entity(TransferResponse.notEnoughFunds().addAccountId(exception.getAccountId()))
                 .build();
     }
 }
