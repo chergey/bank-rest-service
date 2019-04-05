@@ -28,7 +28,7 @@ public class AppTest extends BaseTest {
         var startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
                 .add(fourth.getBalance());
 
-        ExecutorUtils.runConcurrently(
+        ExecutorUtils.runConcurrentlyFJP(
                 () -> transfer(times, first, second),
                 () -> transfer(times, second, first),
                 () -> transfer(times, third, second),
@@ -83,7 +83,4 @@ public class AppTest extends BaseTest {
             }
         }
     }
-
-
-
 }

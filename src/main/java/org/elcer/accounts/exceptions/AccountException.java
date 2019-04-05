@@ -1,5 +1,7 @@
 package org.elcer.accounts.exceptions;
 
+
+@SuppressWarnings("WeakerAccess")
 abstract class AccountException extends RuntimeException {
 
     private long accountId;

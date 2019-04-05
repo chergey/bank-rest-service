@@ -15,9 +15,10 @@ import javax.inject.Singleton;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-/*
-  Injector resolving raw types and injecting them
+/**
+ * Injector resolving raw types and injecting them
  */
+
 
 @Rank(1)
 @SuppressWarnings("unused")

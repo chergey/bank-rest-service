@@ -1,14 +1,20 @@
 package org.elcer.accounts.db;
 
+import org.eclipse.persistence.internal.sessions.AbstractSession;
 import org.eclipse.persistence.sessions.UnitOfWork;
+import org.eclipse.persistence.sessions.server.ClientSession;
+import org.eclipse.persistence.sessions.server.ServerSession;
 import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
-/*
- Wrapper over entity transaction to safely dispose it
+/**
+ * Wrapper over entity transaction to safely dispose it
+ * Need call commit() to commit it
+ * Using ServerSession#acquireClientConnection to immediately start a transaction
+ * @see ServerSession#acquireClientConnection(ClientSession)
  */
 
 public class Transaction implements AutoCloseable {
@@ -21,7 +27,15 @@ public class Transaction implements AutoCloseable {
         em = entityManagerFactory.createEntityManager();
         delegate = em.getTransaction();
         delegate.begin();
-        em.unwrap(UnitOfWork.class).beginEarlyTransaction();
+        UnitOfWork uow = em.unwrap(UnitOfWork.class);
+        uow.beginEarlyTransaction();
+
+        AbstractSession clientSession = uow.getParent();
+        if (clientSession instanceof ClientSession) {
+            AbstractSession serverSession = clientSession.getParent();
+            if (serverSession instanceof ServerSession)
+                ((ServerSession) serverSession).acquireClientConnection(((ClientSession) clientSession));
+        }
     }
 
     @Override

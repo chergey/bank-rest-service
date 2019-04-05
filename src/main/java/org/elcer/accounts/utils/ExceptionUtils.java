@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 
 @UtilityClass
+@SuppressWarnings("unused")
 public class ExceptionUtils {
     public static <T> void wrap(Consumer<T> delegate, Runnable cleanup) {
         wrap((Function<T, Object>) t -> {

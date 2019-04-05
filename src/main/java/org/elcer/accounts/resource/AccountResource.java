@@ -16,6 +16,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
 
+/**
+ * Application endpoint
+ */
+
 @Path("/api")
 @Produces({MediaType.APPLICATION_JSON})
 @Singleton

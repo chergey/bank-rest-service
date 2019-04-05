@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <T>
  */
 
+@SuppressWarnings("unused")
 public class IntrinsicSynchronizer<T extends Comparable<T>> implements Synchronizer<T> {
     private final Map<T, Object> slots = new ConcurrentHashMap<>();
 
