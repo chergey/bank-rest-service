@@ -8,11 +8,13 @@ import org.elcer.accounts.services.AccountRepository;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.math.BigDecimal;
 
 @SuppressWarnings("unused")
 @Component
 @Eager
+@Singleton
 public class SampleDataInitializer {
 
     @Inject
