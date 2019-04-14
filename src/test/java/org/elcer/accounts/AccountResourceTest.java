@@ -53,7 +53,7 @@ public class AccountResourceTest extends BaseTest {
     public void testAccountTransferSuccessfully() {
         ResponseBody body = given().when()
                 .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/transfer?from=1&to=2&amount=10")
+                .post("api/accounts/transfer?from=1&to=2&amount=10")
                 .body();
         assertHttpStatus(body, Response.Status.OK.getStatusCode());
 
@@ -66,7 +66,7 @@ public class AccountResourceTest extends BaseTest {
     public void testAccountTransfer400() {
         ResponseBody body = given().when()
                 .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/transfer?from=&to=&amount=")
+                .post("api/accounts/transfer?from=&to=&amount=")
                 .body();
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -77,7 +77,7 @@ public class AccountResourceTest extends BaseTest {
     public void testAccountTransferNotEnoughFunds() {
         ResponseBody body = given().when()
                 .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/transfer?from=3&to=1&amount=999999")
+                .post("api/accounts/transfer?from=3&to=1&amount=999999")
                 .body();
         assertHttpStatus(body, Response.Status.ACCEPTED.getStatusCode());
 
@@ -89,7 +89,7 @@ public class AccountResourceTest extends BaseTest {
     public void testAccountTransferSame() {
         ResponseBody body = given().when()
                 .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/transfer?from=2&to=2&amount=100")
+                .post("api/accounts/transfer?from=2&to=2&amount=100")
                 .body();
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -101,7 +101,8 @@ public class AccountResourceTest extends BaseTest {
     public void testAccountNegativeAmount() {
         ResponseBody body = given().when()
                 .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/transfer?from=2&to=1&amount=-100").body();
+                .post("api/accounts/transfer?from=2&to=1&amount=-100").body();
+
         assertHttpStatus(body, Response.Status.BAD_REQUEST.getStatusCode());
 
         Assert.assertEquals(TransferResponse.negativeAmount().getCode(), body.as(TransferResponse.class).getCode());

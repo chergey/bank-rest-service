@@ -91,7 +91,7 @@ public class AccountResource {
 
     }
 
-    @GET
+    @POST
     @Path("/accounts/transfer")
     @Required({"from", "to", "amount"})
     public Response transfer(@QueryParam("from") long from, @QueryParam("to") long to,
