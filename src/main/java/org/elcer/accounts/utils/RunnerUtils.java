@@ -15,7 +15,9 @@ import org.glassfish.jersey.servlet.ServletProperties;
 @Slf4j
 public class RunnerUtils {
 
-    public static final int DEFAULT_PORT = 8083;
+    public static final int DEFAULT_PORT = 8082;
+
+    private static final String PORT_PARAM = "port";
 
 
     public static void startServer(int port) {
@@ -49,7 +51,7 @@ public class RunnerUtils {
     public static void parseAndRun(String[] args) {
         Options options = new Options();
 
-        Option input = new Option("port", "port", true, "port");
+        Option input = new Option(PORT_PARAM, PORT_PARAM, true, "port to use");
         input.setRequired(false);
         options.addOption(input);
 
@@ -60,13 +62,13 @@ public class RunnerUtils {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            formatter.printHelp("bank service", options);
+            log.error("Error while parsing options", e);
+            formatter.printHelp("Bank service", options);
             System.exit(1);
             return;
         }
 
-        int port = Integer.parseInt(cmd.getOptionValue("port", Integer.toString(DEFAULT_PORT)));
+        int port = Integer.parseInt(cmd.getOptionValue(PORT_PARAM, Integer.toString(DEFAULT_PORT)));
         startServer(port);
 
     }

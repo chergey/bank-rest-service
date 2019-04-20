@@ -29,27 +29,24 @@ public class AccountService {
     public void transfer(long from, long to, BigDecimal amount) {
         logger.info("Begin transfer from {} to {} amount {}", from, to, amount);
 
-
-        try (var tran = accountRepository.beginTran()) {
-            synchronizer.withLock(from, to, () -> {
-
+        synchronizer.withLock(from, to, () -> {
+            try (var tran = accountRepository.beginTran()) {
                 Account debitAccount = accountRepository.retrieveAccountById(tran, from),
                         creditAccount = accountRepository.retrieveAccountById(tran, to);
 
                 if (debitAccount.getBalance().compareTo(amount) >= 0) {
-                    accountRepository.setBalance(tran, debitAccount,
-                            debitAccount.getBalance().subtract(amount));
-                    accountRepository.setBalance(tran, creditAccount,
-                            creditAccount.getBalance().add(amount));
+                    debitAccount.subtractBalance(amount);
+                    creditAccount.increaseBalance(amount);
+
                     tran.commit();
 
                 } else {
                     throw new NotEnoughFundsException(debitAccount.getId());
                 }
-            });
+            }
 
             logger.info("Successfully transferred from {} to {} amount {}", from, to, amount);
-        }
+        });
     }
 
 
@@ -66,16 +63,16 @@ public class AccountService {
         accountRepository.deleteAccount(id);
     }
 
-    public void replaceAccount(long id, Account account) {
+    public Account replaceAccount(long id, Account account) {
         try (var tran = accountRepository.beginTran()) {
             Account oldAccount = accountRepository.retrieveAccountById(tran, id);
             if (oldAccount != null) {
                 accountRepository.deleteAccount(tran, id);
                 account.setId(id);
-                accountRepository.createAccount(tran, account);
+                return accountRepository.createAccount(tran, account);
             } else {
                 account.setId(id);
-                accountRepository.createAccount(tran, account);
+                return accountRepository.createAccount(tran, account);
             }
         }
     }
@@ -86,6 +83,14 @@ public class AccountService {
 
     public List<Account> getAccounts(String name, int page, int size) {
         return accountRepository.retrieveAccountsByName(name, page, size);
+    }
+
+    public long countAccounts(String name) {
+        return accountRepository.countAccounts(name);
+    }
+
+    public long countAccounts() {
+        return accountRepository.countAccounts();
     }
 }
 

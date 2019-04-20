@@ -34,7 +34,7 @@ public class Transaction implements AutoCloseable {
         if (clientSession instanceof ClientSession) {
             AbstractSession serverSession = clientSession.getParent();
             if (serverSession instanceof ServerSession)
-                ((ServerSession) serverSession).acquireClientConnection(((ClientSession) clientSession));
+                ((ServerSession) serverSession).acquireClientConnection((ClientSession) clientSession);
         }
     }
 

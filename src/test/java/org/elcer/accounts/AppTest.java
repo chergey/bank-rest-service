@@ -18,12 +18,14 @@ public class AppTest extends BaseTest {
     @Repeat(2)
     @Test
     public void testConcurrencyAndDeadlocks() {
+
+
         final int times = 14000;
 
-        var first = accountRepository.createAccount("Mike", BigDecimal.valueOf(622600));
-        var second = accountRepository.createAccount("Jenny", BigDecimal.valueOf(2315000));
-        var third = accountRepository.createAccount("David", BigDecimal.valueOf(630000));
-        var fourth = accountRepository.createAccount("Steve", BigDecimal.valueOf(356000));
+        var first = accountRepository.createAccount(new Account("Mike", BigDecimal.valueOf(622600)));
+        var second = accountRepository.createAccount(new Account("Jenny", BigDecimal.valueOf(2315000)));
+        var third = accountRepository.createAccount(new Account("David", BigDecimal.valueOf(630000)));
+        var fourth = accountRepository.createAccount(new Account("Steve", BigDecimal.valueOf(356000)));
 
         var startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
                 .add(fourth.getBalance());

@@ -11,22 +11,31 @@ import org.elcer.accounts.utils.CriteriaUtils;
 import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.inject.Inject;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
+import javax.persistence.RollbackException;
 import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
 @SuppressWarnings("WeakerAccess")
 public class AccountRepository {
 
+    private static final String BALANCE_FIELD = "balance",
+            NAME_FIELD = "name",
+            ID_FIELD = "id";
+
+
     @PersistenceUnit(name = "accounts")
     @Inject
     private EntityManagerFactory efFactory;
+
 
     public Account createAccount(Account account) {
         return wrapInTran(tran -> {
@@ -41,11 +50,6 @@ public class AccountRepository {
     }
 
 
-    @VisibleForTesting
-    public Account createAccount(String name, BigDecimal amount) {
-        return createAccount(new Account(name, amount));
-    }
-
 
     Transaction beginTran() {
         return new Transaction(efFactory);
@@ -53,8 +57,7 @@ public class AccountRepository {
 
     @VisibleForTesting
     public List<Account> getAllAccounts(int page, int size) {
-        return wrapInTran((Function<Transaction, List<Account>>) tran ->
-                getAllAccounts(tran, page, size));
+        return wrapInTran(tran -> getAllAccounts(tran, page, size));
     }
 
 
@@ -70,13 +73,11 @@ public class AccountRepository {
     }
 
     public Account retrieveAccountById(long id) {
-        return wrapInTran((Function<Transaction, Account>)
-                tran -> retrieveAccountById(tran, id));
+        return wrapInTran(tran -> retrieveAccountById(tran, id));
     }
 
     public List<Account> retrieveAccountsByName(String name, int page, int size) {
-        return wrapInTran((Function<Transaction, List<Account>>)
-                tran -> retrieveAccountByName(tran, name, page, size));
+        return wrapInTran(tran -> retrieveAccountByName(tran, name, page, size));
     }
 
     private List<Account> retrieveAccountByName(Transaction tran, String name, int page, int size) {
@@ -85,7 +86,7 @@ public class AccountRepository {
 
     private List<Account> _retrieveAccountsByName(EntityManager em, String name, int page, int size) {
         return CriteriaUtils.createQuery(em, Account.class,
-                (builder, root) -> builder.equal(root.get("name"), name))
+                (builder, root) -> builder.equal(root.get(NAME_FIELD), name))
                 .setFirstResult(page * size)
                 .setMaxResults(size)
                 .getResultList();
@@ -96,20 +97,63 @@ public class AccountRepository {
         return _retrieveAccountById(tran.getEm(), id);
     }
 
+
+    public long countAccounts(String name) {
+        return wrapInTran(tran -> _countAccounts(tran.getEm(), name));
+    }
+
+    public long countAccounts() {
+        return wrapInTran(tran -> _countAccounts(tran.getEm()));
+    }
+
+
     private Account _retrieveAccountById(EntityManager em, long id) {
-        try {
-            return CriteriaUtils.createQuery(em, Account.class,
-                    (builder, root) -> builder.equal(root.get("id"), id)).getSingleResult();
-        } catch (NoResultException e) {
+        Account account = em.find(Account.class, id);
+        if (account == null) {
             throw new AccountNotFoundException(id);
         }
+        return account;
     }
 
 
+    public void deleteAccount(long id) {
+        wrapInTran(tran -> {
+            deleteAccount(tran, id);
+            return null;
+        });
+    }
+
+    public void deleteAccount(Account account) {
+        wrapInTran(tran -> {
+            deleteAccount(tran, account);
+            return null;
+        });
+    }
+
+    public void deleteAccount(Transaction tran, long id) {
+        var builder = tran.getEm().getCriteriaBuilder();
+        CriteriaDelete<Account> delete = builder.createCriteriaDelete(Account.class);
+        Root<Account> root = delete.from(Account.class);
+        delete.where(builder.equal(root.get(ID_FIELD), id));
+        tran.getEm().createQuery(delete).executeUpdate();
+    }
+
+    public void deleteAccount(Transaction tran, Account account) {
+        tran.getEm().remove(account);
+    }
+
+
+    /* Deprecated.  Entity setters should be used */
+
+    @Deprecated
     public void addBalance(@NotNull Account account, BigDecimal balance) {
-        wrapInTran((Consumer<Transaction>) tran -> addBalance(tran, account, balance));
+        wrapInTran(tran -> {
+            addBalance(tran, account, balance);
+            return null;
+        });
     }
 
+    @Deprecated
     public void setBalance(Transaction tran, Account account, BigDecimal amount) {
         _setBalance(tran.getEm(), account, amount);
     }
@@ -123,9 +167,9 @@ public class AccountRepository {
         var builder = em.getCriteriaBuilder();
         var update = builder.createCriteriaUpdate(Account.class);
         var root = update.from(Account.class);
-        var balancePath = root.get("balance");
+        var balancePath = root.get(BALANCE_FIELD);
         update.set(balancePath, amount);
-        update.where(builder.equal(root.get("id"), account.getId()));
+        update.where(builder.equal(root.get(ID_FIELD), account.getId()));
         Query query = em.createQuery(update);
         query.executeUpdate();
     }
@@ -135,31 +179,32 @@ public class AccountRepository {
         var builder = em.getCriteriaBuilder();
         var update = builder.createCriteriaUpdate(Account.class);
         var root = update.from(Account.class);
-        var balancePath = root.<BigDecimal>get("balance");
+        var balancePath = root.<BigDecimal>get(BALANCE_FIELD);
         var eventualBalance = builder.sum(balancePath, amount);
         update.set(balancePath, eventualBalance);
 
-        update.where(builder.equal(root.get("id"), account.getId()));
+        update.where(builder.equal(root.get(ID_FIELD), account.getId()));
         Query query = em.createQuery(update);
         query.executeUpdate();
     }
 
-
-    public void deleteAccount(long id) {
-        wrapInTran((Consumer<Transaction>) tran -> deleteAccount(tran, id));
+    private long _countAccounts(EntityManager em, String name) {
+        var builder = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        var root = query.from(Account.class);
+        query.select(builder.count(query.from(Account.class)));
+        query.where(builder.equal(root.get(NAME_FIELD), name));
+        return em.createQuery(query).getSingleResult();
     }
 
-    public void deleteAccount(Transaction tran, long id) {
-        var builder = tran.getEm().getCriteriaBuilder();
-        CriteriaDelete<Account> delete = builder.createCriteriaDelete(Account.class);
-        Root<Account> root = delete.from(Account.class);
-        delete.where(builder.equal(root.get("id"), id));
-        tran.getEm().createQuery(delete).executeUpdate();
-
+    private long _countAccounts(EntityManager em) {
+        var builder = em.getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery(Long.class);
+        query.select(builder.count(query.from(Account.class)));
+        return em.createQuery(query).getSingleResult();
     }
 
-
-    //Automatic resource disposing
+    //Automatic resource disposal
 
     private <R> R wrapInTran(Function<Transaction, R> delegate) {
         var tran = beginTran();
@@ -173,18 +218,5 @@ public class AccountRepository {
 
         }, tran);
     }
-
-    private void wrapInTran(Consumer<Transaction> delegate) {
-        var tran = beginTran();
-        ExceptionUtils.wrap(delegate, () -> {
-            try {
-                tran.commit();
-            } catch (RollbackException e) {
-                tran.rollback();
-            }
-            tran.getEm().close();
-        }, tran);
-    }
-
 
 }

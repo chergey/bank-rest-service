@@ -3,32 +3,18 @@ package org.elcer.accounts.utils;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 
 @UtilityClass
 @SuppressWarnings("unused")
 public class ExceptionUtils {
-    public static <T> void wrap(Consumer<T> delegate, Runnable cleanup) {
-        wrap((Function<T, Object>) t -> {
-            delegate.accept(t);
-            return null;
-        }, cleanup, null);
-    }
 
     public static <T> void wrap(Runnable delegate, Runnable cleanup) {
         wrap((Function<T, Object>) ignored -> {
             delegate.run();
             return null;
         }, cleanup, null);
-    }
-
-    public static <T> void wrap(Consumer<T> delegate, Runnable cleanup, T arg) {
-        wrap(t -> {
-            delegate.accept(t);
-            return null;
-        }, cleanup, arg);
     }
 
     @SneakyThrows

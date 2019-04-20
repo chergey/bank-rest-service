@@ -25,18 +25,15 @@ import java.util.concurrent.CountDownLatch;
 @Slf4j
 public class AppConfig extends ResourceConfig {
 
+    public static final String PAGE_PARAM_NAME = "page", SIZE_PARAM_NAME = "size";
+    private static final String PACKAGE_NAME = "org.elcer.accounts";
 
-    @VisibleForTesting
-    @SneakyThrows
-    public static ServiceLocator getServiceLocator() {
-        initialized.await();
-
-        return SERVICE_LOCATOR;
-    }
 
     private static ServiceLocator SERVICE_LOCATOR;
     private static CountDownLatch initialized = new CountDownLatch(1);
-    private static final String PACKAGE_NAME = "org.elcer.accounts";
+
+
+
 
     @Inject
     public AppConfig(ServiceLocator serviceLocator) {
@@ -45,6 +42,15 @@ public class AppConfig extends ResourceConfig {
         register(JacksonFeature.class);
 
     }
+
+
+    @VisibleForTesting
+    @SneakyThrows
+    public static ServiceLocator getServiceLocator() {
+        initialized.await();
+        return SERVICE_LOCATOR;
+    }
+
 
     private void addServices(ServiceLocator serviceLocator) {
         var ac = new AnnotatedClasses();

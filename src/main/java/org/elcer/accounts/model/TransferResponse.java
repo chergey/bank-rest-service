@@ -13,6 +13,22 @@ import lombok.experimental.Accessors;
 public class TransferResponse {
 
 
+    private String message;
+    private int code;
+
+
+    private TransferResponse(String message, int code) {
+        this.message = message;
+        this.code = code;
+    }
+
+
+    public TransferResponse addAccountId(long accountId) {
+        TransferResponse response = new TransferResponse(this.message, this.code);
+        response.message = String.format(this.message, accountId);
+        return response;
+    }
+
     //api responses
     public static TransferResponse negativeAmount() {
         return new TransferResponse("Amount to transfer must be positive", 1);
@@ -37,29 +53,5 @@ public class TransferResponse {
     public static TransferResponse debitAccountIsCreditAccount() {
         return new TransferResponse("Debit account can't be credit account", 4);
     }
-
-
-    private String message;
-    private int code;
-
-    private static final String SPACE = " ";
-
-    private TransferResponse(String message, int code) {
-        this.message = message;
-        this.code = code;
-    }
-
-
-    public TransferResponse appendMessage(String sep, String data) {
-        TransferResponse response = new TransferResponse(this.message, this.code);
-        response.message += sep + SPACE + data;
-        return response;
-    }
-
-
-    public TransferResponse addAccountId(long accountId) {
-        TransferResponse response = new TransferResponse(this.message, this.code);
-        response.message = String.format(this.message, accountId);
-        return response;
-    }
 }
+
