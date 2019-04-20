@@ -12,10 +12,23 @@ Stack
 * [Apache DB](https://db.apache.org) aka Derby, in memory database
 * [REST Assured](http://rest-assured.io) for tests
 
+
+Features
+* HATEOAS
+* Security
+
+
 To run
 ```
 mvn package 
 java -jar <app-name> -port=<port>
-curl http://localhost:<port>/api/account/transfer?from=1&to=2&amount=10
+```
+
+Sample requests
+```
+curl -X POST http://localhost:<port>/api/accounts/transfer?from=1&to=2&amount=10
+curl http://localhost:<port>/api/accounts
+curl http://localhost:<port>/api/accounts/somename?page=&size=20
+curl -X DELETE http://localhost:<port>/api/accounts/2
 ```
 
