@@ -30,7 +30,7 @@ class PagedResourceSupport {
     Link getAllAccountsLink() {
         UriBuilder uriBuilder = startBuilder
                 .path(GET_ALL_ACCOUNTS_METHOD).queryParam(AppConfig.PAGE_PARAM_NAME, 0)
-                .queryParam(AppConfig.SIZE_PARAM_NAME, 20);
+                .queryParam(AppConfig.SIZE_PARAM_NAME, AppConfig.DEFAULT_PAGESIZE);
 
         Link.Builder linkBuilder = Link.fromUriBuilder(uriBuilder);
         return linkBuilder.rel("accounts").build();

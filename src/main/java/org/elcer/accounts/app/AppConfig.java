@@ -26,6 +26,7 @@ import java.util.concurrent.CountDownLatch;
 public class AppConfig extends ResourceConfig {
 
     public static final String PAGE_PARAM_NAME = "page", SIZE_PARAM_NAME = "size";
+    public static final String DEFAULT_PAGESIZE = "20";
     private static final String PACKAGE_NAME = "org.elcer.accounts";
 
     private static ServiceLocator SERVICE_LOCATOR;

@@ -67,7 +67,7 @@ public class AccountResource {
     @Path("/accounts/{name:[a-zA-Z]+}")
     public PagedResponse<Account> getAccountByName(@PathParam("name") String name,
                                                    @DefaultValue("0") @QueryParam(AppConfig.PAGE_PARAM_NAME) int page,
-                                                   @DefaultValue("20") @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
+                                                   @DefaultValue(AppConfig.DEFAULT_PAGESIZE) @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
         var accounts = accountService.getAccounts(name, page, size);
         long total = accountService.countAccounts(name);
         var pagedAccounts = new PagedResponse<Account>();
@@ -85,7 +85,7 @@ public class AccountResource {
     @Path("/accounts/")
     public PagedResponse<Account> getAllAccounts(
             @DefaultValue("0") @QueryParam(AppConfig.PAGE_PARAM_NAME)  int page,
-            @DefaultValue("20") @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
+            @DefaultValue(AppConfig.DEFAULT_PAGESIZE) @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
         var accounts = accountService.getAllAccounts(page, size);
 
         long total = accountService.countAccounts();
