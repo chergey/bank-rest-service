@@ -70,15 +70,15 @@ public class AccountResource {
                                                    @DefaultValue("20") @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
         var accounts = accountService.getAccounts(name, page, size);
         long total = accountService.countAccounts(name);
-        var accountWithLink = new PagedResponse<Account>();
+        var pagedAccounts = new PagedResponse<Account>();
 
         if (total > 0) {
             UriBuilder startBuilder = uriInfo.getRequestUriBuilder().path(name);
             PagedResourceSupport pagedResourceSupport = new PagedResourceSupport(startBuilder);
-            accountWithLink.setLinks(pagedResourceSupport.createLinks(page, size, total));
+            pagedAccounts.setLinks(pagedResourceSupport.createLinks(page, size, total));
         }
-        accountWithLink.setContent(accounts);
-        return accountWithLink;
+        pagedAccounts.setContent(accounts);
+        return pagedAccounts;
     }
 
     @GET
@@ -89,15 +89,15 @@ public class AccountResource {
         var accounts = accountService.getAllAccounts(page, size);
 
         long total = accountService.countAccounts();
-        var accountWithLink = new PagedResponse<Account>();
+        var pagedAccounts = new PagedResponse<Account>();
 
         if (total > 0) {
             UriBuilder startBuilder = uriInfo.getRequestUriBuilder();
             PagedResourceSupport pagedResourceSupport = new PagedResourceSupport(startBuilder);
-            accountWithLink.setLinks(pagedResourceSupport.createLinks(page, size, total));
+            pagedAccounts.setLinks(pagedResourceSupport.createLinks(page, size, total));
         }
-        accountWithLink.setContent(accounts);
-        return accountWithLink;
+        pagedAccounts.setContent(accounts);
+        return pagedAccounts;
 
     }
 

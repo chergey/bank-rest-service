@@ -1,7 +1,7 @@
 # Bank rest service
 Project featuring REST service <strong> without making use of Spring </strong>.
 The premise that rest application can be developed in the same manner as Spring.
-The app is kept as simple as possible, with only one method /account/transfer.
+The app is kept as simple as possible.
 
 [![Build Status](https://travis-ci.com/chergey/bank-rest-service.svg?branch=master)](https://travis-ci.com/chergey/bank-rest-service)
 

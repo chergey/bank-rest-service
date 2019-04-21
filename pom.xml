@@ -341,14 +341,12 @@
                                 </requireActiveProfile>
                                 <evaluateBeanshell>
                                     <condition><![CDATA[
-                                        // ensure PROFILE_ONE XOR PROFILE_TWO
-                                        print("Checking if only one of PROFILE_ONE and PROFILE_TWO profiles is active ...");
+                                        print("Checking if only one of derby and postgres profiles is active ...");
                                         boolean profile1 = false, profile2 = false;
                                         for(s: "${project.activeProfiles}".replaceAll("\\[?\\s?Profile \\{id: (?<profile>\\w+), source: \\w+\\}\\]?", "${profile}").split(",")) {
                                             if("derby".equalsIgnoreCase(s)){ profile1 = true;}
                                             if("postgres".equalsIgnoreCase(s)){ profile2 = true;}
                                         }
-                                        print("derby XOR postgres: "+(derby != postgres));
                                         return profile1 != profile2;
                                     ]]></condition>
                                 </evaluateBeanshell>
