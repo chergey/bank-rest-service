@@ -28,11 +28,8 @@ public class AppConfig extends ResourceConfig {
     public static final String PAGE_PARAM_NAME = "page", SIZE_PARAM_NAME = "size";
     private static final String PACKAGE_NAME = "org.elcer.accounts";
 
-
     private static ServiceLocator SERVICE_LOCATOR;
     private static CountDownLatch initialized = new CountDownLatch(1);
-
-
 
 
     @Inject
