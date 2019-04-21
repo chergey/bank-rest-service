@@ -47,11 +47,11 @@ class PagedResourceSupport {
 
         if (requestedElements < total) {
             uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, page + 1)
-                    .queryParam("size", size);
+                    .queryParam(AppConfig.SIZE_PARAM_NAME, size);
             links.add(Link.fromUriBuilder(uriBuilder).rel("next").build());
         }
 
-        uriBuilder = startBuilder.queryParam("page", total / size)
+        uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, total / size)
                 .queryParam(AppConfig.SIZE_PARAM_NAME, size);
         links.add(Link.fromUriBuilder(uriBuilder).rel("last").build());
 

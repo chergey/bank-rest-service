@@ -9,6 +9,6 @@
     <suppress files="RunnerUtils.java|ExceptionUtils.java|CriteriaUtils.java" checks="IllegalCatch"/>
 
     <suppress files="AccountResource.java" checks="MultipleStringLiterals"/>
-    <suppress files="AppConfig.java" checks="IllegalCatch" lines="65"/>
+    <suppress files="AppConfig.java" checks="IllegalCatch" lines="62"/>
     <suppress files="AbstractResolver" checks="DeclarationOrder" lines="85"/>
 </suppressions>
