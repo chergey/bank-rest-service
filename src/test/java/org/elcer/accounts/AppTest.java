@@ -22,10 +22,10 @@ public class AppTest extends BaseTest {
 
         final int times = 14000;
 
-        var first = accountRepository.createAccount(new Account("Mike", BigDecimal.valueOf(622600)));
-        var second = accountRepository.createAccount(new Account("Jenny", BigDecimal.valueOf(2315000)));
-        var third = accountRepository.createAccount(new Account("David", BigDecimal.valueOf(630000)));
-        var fourth = accountRepository.createAccount(new Account("Steve", BigDecimal.valueOf(356000)));
+        var first = accountRepository.save(new Account("Mike", BigDecimal.valueOf(622600)));
+        var second = accountRepository.save(new Account("Jenny", BigDecimal.valueOf(2315000)));
+        var third = accountRepository.save(new Account("David", BigDecimal.valueOf(630000)));
+        var fourth = accountRepository.save(new Account("Steve", BigDecimal.valueOf(356000)));
 
         var startingTotal = second.getBalance().add(first.getBalance()).add(third.getBalance())
                 .add(fourth.getBalance());

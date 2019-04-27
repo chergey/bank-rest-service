@@ -29,7 +29,7 @@ public class SampleDataInitializer {
         if (init) return;
         try {
             for (int i = 0; i < ACCOUNTS_TO_CREATE; i++) {
-                accountRepository.createAccount(new Account(RandomStringUtils.randomAlphabetic(5),
+                accountRepository.save(new Account(RandomStringUtils.randomAlphabetic(5),
                         BigDecimal.valueOf(RandomUtils.nextLong(100, 1000))));
             }
         } finally {

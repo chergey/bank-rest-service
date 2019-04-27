@@ -1,9 +1,9 @@
 package org.elcer.accounts.hk2;
 
-import org.apache.commons.lang3.StringUtils;
 import org.elcer.accounts.hk2.annotations.Required;
 
-import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -13,11 +13,10 @@ import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Provider validating required parameters at the request time
@@ -30,24 +29,21 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
         final Method resourceMethod = resourceInfo.getResourceMethod();
-        Required ann = resourceMethod.getAnnotation(Required.class);
-        if (ann != null)
-            context.register(new RequiredParamFilter(ann.value(), resourceInfo));
+        Arrays.stream(resourceMethod.getParameters())
+                .map(p -> p.getAnnotation(Required.class))
+                .filter(Objects::nonNull)
+                .findAny().ifPresent(p ->
+                context.register(new RequiredParamFilter(resourceMethod)));
+
+
     }
 
     private class RequiredParamFilter implements ContainerRequestFilter {
 
-        private final List<String> requiredParams;
+        private Method resourceMethod;
 
-        private RequiredParamFilter(String[] requiredParams, ResourceInfo resourceInfo) {
-            this.requiredParams = Arrays.stream(requiredParams).collect(Collectors.toList());
-            if (!Arrays.stream(resourceInfo.getResourceMethod().getParameters())
-                    .map(r -> r.getAnnotation(Path.class))
-                    .filter(Objects::nonNull)
-                    .map(Path::value)
-                    .allMatch(this.requiredParams::contains)) {
-                throw new IllegalArgumentException("@Required params should refer to @Path params");
-            }
+        private RequiredParamFilter(Method resourceMethod) {
+            this.resourceMethod = resourceMethod;
         }
 
         @Override
@@ -55,20 +51,35 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
             var requiredParametersValueMissing = new ArrayList<String>();
             var queryParameters = containerRequest.getUriInfo().getQueryParameters();
 
-            var urlParms = queryParameters.keySet();
-            for (var param : queryParameters.entrySet()) {
-                if (param.getValue().stream().allMatch(StringUtils::isEmpty) && requiredParams.contains(param.getKey()))
-                    requiredParametersValueMissing.add(param.getKey());
+
+            for (Parameter parameter : resourceMethod.getParameters()) {
+                Required requiredAnn = parameter.getAnnotation(Required.class);
+                if (requiredAnn == null) continue;
+
+                String value = null;
+
+                PathParam pathParam = parameter.getAnnotation(PathParam.class);
+                QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
+
+                if (queryParam != null) {
+                    value = queryParam.value();
+                }
+                if (pathParam != null) {
+                    value = pathParam.value();
+                }
+
+                if (value == null) {
+                    throw new RuntimeException("No @PathParam or @QueryParam defined!");
+                }
+
+                if (queryParameters.get(value).isEmpty()) {
+                    throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                            .entity(String.format("Parameter %s missing", String.join(",", requiredParametersValueMissing)))
+                            .build());
+                }
+
             }
 
-            requiredParams.stream().filter(r -> !urlParms.contains(r))
-                    .forEach(requiredParametersValueMissing::add);
-
-            if (!requiredParametersValueMissing.isEmpty()) {
-                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                        .entity(String.format("Parameter %s missing", String.join(",", requiredParametersValueMissing)))
-                        .build());
-            }
         }
 
     }

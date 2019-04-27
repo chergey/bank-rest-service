@@ -37,18 +37,21 @@ public class AccountRepository {
     private EntityManagerFactory efFactory;
 
 
-    public Account createAccount(Account account) {
+    public Account save(Account account) {
         return wrapInTran(tran -> {
             tran.getEm().persist(account);
             return account;
         });
     }
 
-    public Account createAccount(Transaction tran, Account account) {
-        tran.getEm().persist(account);
-        return account;
+    public Account save(Transaction tran, Account account) {
+        EntityManager entityManager = tran.getEm();
+        if (account.getId() == null) {
+            entityManager.persist(account);
+            return account;
+        }
+        return entityManager.merge(account);
     }
-
 
 
     Transaction beginTran() {
@@ -62,11 +65,12 @@ public class AccountRepository {
 
 
     List<Account> getAllAccounts(Transaction tran, int page, int size) {
-        var builder = tran.getEm().getCriteriaBuilder();
+        EntityManager entityManager = tran.getEm();
+        var builder = entityManager.getCriteriaBuilder();
         var q = builder.createQuery(Account.class);
         Root<Account> root = q.from(Account.class);
         q.select(root);
-        var query = tran.getEm().createQuery(q);
+        var query = entityManager.createQuery(q);
         query.setFirstResult(page * size);
         query.setMaxResults(size);
         return query.getResultList();
@@ -93,7 +97,8 @@ public class AccountRepository {
 
     }
 
-    Account retrieveAccountById(Transaction tran, long id) {
+
+    public Account retrieveAccountById(Transaction tran, long id) {
         return _retrieveAccountById(tran.getEm(), id);
     }
 
@@ -139,7 +144,8 @@ public class AccountRepository {
     }
 
     public void deleteAccount(Transaction tran, Account account) {
-        tran.getEm().remove(account);
+        EntityManager entityManager = tran.getEm();
+        entityManager.remove(entityManager.contains(account) ? account : entityManager.merge(account));
     }
 
 

@@ -55,24 +55,25 @@ public class AccountService {
     }
 
     public Account createAccount(Account account) {
-        return accountRepository.createAccount(account);
+        return accountRepository.save(account);
     }
 
 
     public void deleteAccount(long id) {
-        accountRepository.deleteAccount(id);
+        Account account = accountRepository.retrieveAccountById(id);
+        accountRepository.deleteAccount(account);
     }
 
     public Account replaceAccount(long id, Account account) {
         try (var tran = accountRepository.beginTran()) {
             Account oldAccount = accountRepository.retrieveAccountById(tran, id);
             if (oldAccount != null) {
-                accountRepository.deleteAccount(tran, id);
-                account.setId(id);
-                return accountRepository.createAccount(tran, account);
+                oldAccount.setBalance(account.getBalance());
+                oldAccount.setName(account.getName());
+                return accountRepository.save(tran, oldAccount);
             } else {
                 account.setId(id);
-                return accountRepository.createAccount(tran, account);
+                return accountRepository.save(tran, account);
             }
         }
     }

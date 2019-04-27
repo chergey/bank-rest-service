@@ -84,7 +84,7 @@ public class AccountResource {
     @GET
     @Path("/accounts/")
     public PagedResponse<Account> getAllAccounts(
-            @DefaultValue("0") @QueryParam(AppConfig.PAGE_PARAM_NAME)  int page,
+            @DefaultValue("0") @QueryParam(AppConfig.PAGE_PARAM_NAME) int page,
             @DefaultValue(AppConfig.DEFAULT_PAGESIZE) @QueryParam(AppConfig.SIZE_PARAM_NAME) int size) {
         var accounts = accountService.getAllAccounts(page, size);
 
@@ -121,9 +121,8 @@ public class AccountResource {
 
     @POST
     @Path("/accounts/transfer")
-    @Required({"from", "to", "amount"})
-    public Response transfer(@QueryParam("from") long from, @QueryParam("to") long to,
-                             @QueryParam("amount") BigDecimal amount) {
+    public Response transfer(@Required @QueryParam("from") long from, @Required @QueryParam("to") long to,
+                             @Required @QueryParam("amount") BigDecimal amount) {
 
         if (from == to) {
             return Response.status(Response.Status.BAD_REQUEST)
