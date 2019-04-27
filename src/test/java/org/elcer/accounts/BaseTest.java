@@ -6,7 +6,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.jetty.server.Server;
 import org.elcer.accounts.app.AppConfig;
 import org.elcer.accounts.model.Account;
-import org.elcer.accounts.services.AccountRepository;
 import org.elcer.accounts.services.AccountService;
 import org.elcer.accounts.utils.RunnerUtils;
 import org.junit.AfterClass;
@@ -23,7 +22,6 @@ public abstract class BaseTest {
     protected static List<Account> accounts = new ArrayList<>();
 
     protected static AccountService accountService;
-    protected static AccountRepository accountRepository;
     protected static Server server;
 
     @BeforeClass
@@ -35,8 +33,7 @@ public abstract class BaseTest {
         Thread.sleep(2000);
 
         accountService = AppConfig.getServiceLocator().getService(AccountService.class);
-        accountRepository = AppConfig.getServiceLocator().getService(AccountRepository.class);
-        accounts = accountRepository.getAllAccounts(0, 1000);
+        accounts = accountService.getAllAccounts(0, 1000);
 
         Assert.assertTrue("Accounts not initialized", CollectionUtils.isNotEmpty(accounts));
         System.out.println("Accounts created: " + accounts.size());
