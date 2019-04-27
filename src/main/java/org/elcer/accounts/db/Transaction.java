@@ -12,7 +12,6 @@ import javax.persistence.EntityTransaction;
 
 /**
  * Wrapper over entity transaction to safely dispose it
- * Need call commit() to commit it
  * Using ServerSession#acquireClientConnection to immediately start a transaction
  * @see ServerSession#acquireClientConnection(ClientSession)
  */
@@ -42,7 +41,7 @@ public class Transaction implements AutoCloseable {
     public void close() {
         ExceptionUtils.wrap(() -> {
             if (delegate.isActive()) {
-                delegate.rollback();
+                delegate.commit();
             }
         }, em::close);
     }
@@ -51,11 +50,4 @@ public class Transaction implements AutoCloseable {
         return em;
     }
 
-    public void commit() {
-        delegate.commit();
-    }
-
-    public void rollback() {
-        delegate.rollback();
-    }
 }

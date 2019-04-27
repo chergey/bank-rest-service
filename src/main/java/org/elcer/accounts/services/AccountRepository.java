@@ -1,20 +1,17 @@
 package org.elcer.accounts.services;
 
 
-import com.google.common.annotations.VisibleForTesting;
 import org.elcer.accounts.db.Transaction;
 import org.elcer.accounts.exceptions.AccountNotFoundException;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.PersistenceUnit;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.utils.CriteriaUtils;
-import org.elcer.accounts.utils.ExceptionUtils;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
-import javax.persistence.RollbackException;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -58,7 +55,6 @@ public class AccountRepository {
         return new Transaction(efFactory);
     }
 
-    @VisibleForTesting
     public List<Account> getAllAccounts(int page, int size) {
         return wrapInTran(tran -> getAllAccounts(tran, page, size));
     }
@@ -213,16 +209,9 @@ public class AccountRepository {
     //Automatic resource disposal
 
     private <R> R wrapInTran(Function<Transaction, R> delegate) {
-        var tran = beginTran();
-        return ExceptionUtils.wrap(delegate, () -> {
-            try {
-                tran.commit();
-            } catch (RollbackException e) {
-                tran.rollback();
-            }
-            tran.getEm().close();
-
-        }, tran);
+        try (var tran = beginTran()) {
+            return delegate.apply(tran);
+        }
     }
 
 }

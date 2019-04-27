@@ -32,15 +32,14 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
         Arrays.stream(resourceMethod.getParameters())
                 .map(p -> p.getAnnotation(Required.class))
                 .filter(Objects::nonNull)
-                .findAny().ifPresent(p ->
-                context.register(new RequiredParamFilter(resourceMethod)));
+                .findAny().ifPresent(p -> context.register(new RequiredParamFilter(resourceMethod)));
 
 
     }
 
     private class RequiredParamFilter implements ContainerRequestFilter {
 
-        private Method resourceMethod;
+        private final Method resourceMethod;
 
         private RequiredParamFilter(Method resourceMethod) {
             this.resourceMethod = resourceMethod;

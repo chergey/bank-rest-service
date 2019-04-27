@@ -38,8 +38,6 @@ public class AccountService {
                     debitAccount.subtractBalance(amount);
                     creditAccount.increaseBalance(amount);
 
-                    tran.commit();
-
                 } else {
                     throw new NotEnoughFundsException(debitAccount.getId());
                 }
