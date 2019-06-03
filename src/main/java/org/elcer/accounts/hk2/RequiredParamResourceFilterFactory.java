@@ -1,5 +1,6 @@
 package org.elcer.accounts.hk2;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.elcer.accounts.hk2.annotations.Required;
 
 import javax.ws.rs.PathParam;
@@ -71,7 +72,7 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
                     throw new RuntimeException("No @PathParam or @QueryParam defined!");
                 }
 
-                if (queryParameters.get(value).isEmpty()) {
+                if (CollectionUtils.isEmpty(queryParameters.get(value))) {
                     throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                             .entity(String.format("Parameter %s missing", String.join(",", requiredParametersValueMissing)))
                             .build());

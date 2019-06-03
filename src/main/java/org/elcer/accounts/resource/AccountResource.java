@@ -51,7 +51,8 @@ public class AccountResource {
         var builder = uriInfo.getAbsolutePathBuilder();
         Account replacedAccount = accountService.replaceAccount(id, account);
         builder.path(Long.toString(replacedAccount.getId()));
-        return Response.created(builder.build()).build();
+        return Response.created(builder.build())
+                .entity(replacedAccount).build();
     }
 
     @DELETE

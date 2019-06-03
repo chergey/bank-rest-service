@@ -25,7 +25,7 @@ public class SampleDataInitializer {
     private boolean init;
 
     @PostConstruct
-    public void init() {
+    private void init() {
         if (init) return;
         try {
             for (int i = 0; i < ACCOUNTS_TO_CREATE; i++) {

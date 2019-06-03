@@ -1,4 +1,4 @@
-package org.elcer.accounts.utils;
+package org.elcer.accounts.db;
 
 import lombok.experimental.UtilityClass;
 

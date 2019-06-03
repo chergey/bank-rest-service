@@ -6,7 +6,7 @@ import org.elcer.accounts.exceptions.AccountNotFoundException;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.PersistenceUnit;
 import org.elcer.accounts.model.Account;
-import org.elcer.accounts.utils.CriteriaUtils;
+import org.elcer.accounts.db.CriteriaUtils;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -132,11 +132,12 @@ public class AccountRepository {
     }
 
     public void deleteAccount(Transaction tran, long id) {
-        var builder = tran.getEm().getCriteriaBuilder();
+        EntityManager entityManager = tran.getEm();
+        var builder = entityManager.getCriteriaBuilder();
         CriteriaDelete<Account> delete = builder.createCriteriaDelete(Account.class);
         Root<Account> root = delete.from(Account.class);
         delete.where(builder.equal(root.get(ID_FIELD), id));
-        tran.getEm().createQuery(delete).executeUpdate();
+        entityManager.createQuery(delete).executeUpdate();
     }
 
     public void deleteAccount(Transaction tran, Account account) {

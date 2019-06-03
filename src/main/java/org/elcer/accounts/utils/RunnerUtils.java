@@ -20,13 +20,9 @@ public class RunnerUtils {
     private static final String PORT_PARAM = "port";
 
 
-    public static void startServer(int port) {
-        startServer(port, true);
-    }
-
     @SuppressWarnings("UnusedReturnValue")
     @SneakyThrows
-    public static Server startServer(int port, boolean wait) {
+    public static Server startServer(int port) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         Server jettyServer = new Server(port);
@@ -37,8 +33,7 @@ public class RunnerUtils {
 
         try {
             jettyServer.start();
-            if (wait)
-                jettyServer.join();
+            jettyServer.join();
         } catch (Exception e) {
             log.error("Error in server", e);
             throw e;

@@ -11,7 +11,7 @@ import javax.ws.rs.ext.Provider;
 @Provider
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new SimpleModule()
                     .addSerializer(new LinkSerializer(Link.class))
                     .addDeserializer(Link.class, new LinkDeserializer(Link.class))

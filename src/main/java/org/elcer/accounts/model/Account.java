@@ -1,6 +1,7 @@
 package org.elcer.accounts.model;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,21 +17,20 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
 public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     // ApacheDB don't work well with IDENTITY (https://issues.apache.org/jira/browse/DERBY-5151)
+    //@JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     private String name;
     private BigDecimal balance;
 
 
-    public Account(String name) {
-        this.name = name;
-    }
 
     public Account(String name, BigDecimal balance) {
         this.name = name;

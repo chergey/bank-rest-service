@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.model.Account;
+import org.elcer.accounts.services.AccountService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,12 +16,13 @@ import java.math.BigDecimal;
 @Slf4j
 public class AppTest extends BaseTest {
 
+    private static final int TIMES = 14000;
+
+
     @Repeat(2)
     @Test
     public void testConcurrencyAndDeadlocks() {
-
-
-        final int times = 14000;
+        AccountService accountService = getAccountService();
 
         var first = accountService.createAccount(new Account("Mike", BigDecimal.valueOf(622600)));
         var second = accountService.createAccount(new Account("Jenny", BigDecimal.valueOf(2315000)));
@@ -31,21 +33,21 @@ public class AppTest extends BaseTest {
                 .add(fourth.getBalance());
 
         ExecutorUtils.runConcurrentlyFJP(
-                () -> transfer(times, first, second),
-                () -> transfer(times, second, first),
-                () -> transfer(times, third, second),
+                () -> transfer(accountService, first, second),
+                () -> transfer(accountService, second, first),
+                () -> transfer(accountService, third, second),
 
-                () -> transfer(times, second, fourth),
-                () -> transfer(times, second, third),
-                () -> transfer(times, first, third),
-                () -> transfer(times, first, fourth),
+                () -> transfer(accountService, second, fourth),
+                () -> transfer(accountService, second, third),
+                () -> transfer(accountService, first, third),
+                () -> transfer(accountService, first, fourth),
 
-                () -> transfer(times, third, first),
-                () -> transfer(times, third, fourth),
+                () -> transfer(accountService, third, first),
+                () -> transfer(accountService, third, fourth),
 
-                () -> transfer(times, fourth, first),
-                () -> transfer(times, fourth, second),
-                () -> transfer(times, fourth, third)
+                () -> transfer(accountService, fourth, first),
+                () -> transfer(accountService, fourth, second),
+                () -> transfer(accountService, fourth, third)
 
         );
 
@@ -70,8 +72,8 @@ public class AppTest extends BaseTest {
 
     }
 
-    private void transfer(final int times, Account debit, Account credit) {
-        int i = times;
+    private void transfer(AccountService accountService, Account debit, Account credit) {
+        int i = TIMES;
         while (i-- >= 0) {
             try {
                 accountService.transfer(debit.getId(), credit.getId(),

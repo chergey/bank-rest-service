@@ -1,151 +1,172 @@
 package org.elcer.accounts;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.restassured.RestAssured;
-import io.restassured.config.RestAssuredConfig;
-import io.restassured.http.ContentType;
-import io.restassured.internal.RestAssuredResponseImpl;
-import io.restassured.mapper.TypeRef;
-import io.restassured.response.ResponseBody;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.elcer.accounts.app.LinkDeserializer;
 import org.elcer.accounts.model.Account;
 import org.elcer.accounts.model.PagedResponse;
 import org.elcer.accounts.model.TransferResponse;
-import org.elcer.accounts.utils.RunnerUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.ws.rs.core.Link;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.math.BigDecimal;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.ObjectMapperConfig.objectMapperConfig;
 
 
 @Slf4j
 public class ResourceTest extends BaseTest {
 
-    // add custom Link deserializer
-    static {
-        RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperConfig()
-                .jackson2ObjectMapperFactory(
-                        (type, s) -> new ObjectMapper().registerModule(
-                                new SimpleModule().addDeserializer(Link.class, new LinkDeserializer(Link.class))
-                        )
-                ));
+    @After
+    public void clean() {
+        for (Account allAccount : getAccountService().getAllAccounts(0, Integer.MAX_VALUE)) {
+            getAccountService().deleteAccount(allAccount.getId());
+        }
     }
+
 
     @Test
     public void testDeleteAccount() {
-        ResponseBody body = given()
-                .contentType(ContentType.JSON)
-                .when().port(RunnerUtils.DEFAULT_PORT)
-                .delete("api/accounts/2")
-                .body();
+        getAccountService().createAccount(new Account(1L, "Denis", BigDecimal.valueOf(40000)));
 
-        assertHttpStatus(body, Response.Status.OK);
+        Response response = target("api/accounts")
+                .path(Integer.toString(1))
+                .request()
+                .delete();
 
-    }
-
-    @Test
-    public void testReplaceAccount() throws IOException {
-        Account account = new Account("Daniel", BigDecimal.valueOf(10000));
-        String serialized = serialize(account);
-        ResponseBody body = given()
-                .contentType(ContentType.JSON)
-                .body(serialized)
-                .when().port(RunnerUtils.DEFAULT_PORT)
-                .put("api/accounts/2")
-                .body();
-
-        assertHttpStatus(body, Response.Status.CREATED);
+        assertHttpStatus(response, Response.Status.OK);
 
     }
 
 
     @Test
-    public void testCreateAccount() throws IOException {
-        Account account = new Account("Daniel", BigDecimal.valueOf(10000));
-        String serialized = serialize(account);
-        ResponseBody body = given()
-                .contentType(ContentType.JSON)
-                .body(serialized)
-                .when().port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/").body();
+    public void testReplaceAccount() {
+        getAccountService().createAccount(new Account(2L, "Denis", BigDecimal.valueOf(40000)));
 
-        Account createdAccount = body.as(Account.class);
+        Account account = new Account("Daniel", BigDecimal.valueOf(10000));
+        Response response = target("api/accounts")
+                .path(Integer.toString(2))
+                .request()
+                .put(Entity.json(account));
+
+        Account replacedAccount = response.readEntity(Account.class);
+        assertHttpStatus(response, Response.Status.CREATED);
+        Assert.assertNotNull(replacedAccount);
+        Assert.assertEquals("Account balance should be 10000", replacedAccount.getBalance(), BigDecimal.valueOf(10000));
+        Assert.assertEquals("Account name should be Daniel", replacedAccount.getName(), "Daniel");
+
+    }
+
+
+    @Test
+    public void testCreateAccount() {
+        Account account = new Account("Daniel", BigDecimal.valueOf(10000));
+
+        Response response = target("api/accounts")
+                .request()
+                .post(Entity.json(account));
+
+        Account createdAccount = response.readEntity(Account.class);
         Assert.assertNotNull("Account can't be null", createdAccount);
         Assert.assertNotNull("Account id can't be null", createdAccount.getId());
 
-
-        assertHttpStatus(body, Response.Status.CREATED);
+        assertHttpStatus(response, Response.Status.CREATED);
 
     }
 
     @Test
     public void testAccountTransferSuccessfully() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/transfer?from=1&to=2&amount=10")
-                .body();
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(10000)));
+        getAccountService().createAccount(new Account(2L, "Mark", BigDecimal.valueOf(10000)));
 
-        assertHttpStatus(body, Response.Status.OK);
+        Response response = target("api/accounts/transfer")
+                .queryParam("from", 1)
+                .queryParam("to", 2)
+                .queryParam("amount", 10)
+                .request()
+                .post(Entity.json(null));
 
-        Assert.assertEquals(TransferResponse.success(), body.as(TransferResponse.class));
+        assertHttpStatus(response, Response.Status.OK);
+
+        Assert.assertEquals(TransferResponse.success(), response.readEntity(TransferResponse.class));
 
 
     }
 
     @Test
     public void testAccountTransfer400() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/transfer?from=&to=&amount=")
-                .body();
-        assertHttpStatus(body, Response.Status.BAD_REQUEST);
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(10000)));
+        getAccountService().createAccount(new Account(2L, "Mark", BigDecimal.valueOf(10000)));
+
+
+        Response response = target("api/accounts/transfer")
+                .queryParam("from")
+                .queryParam("to")
+                .queryParam("amount")
+                .request()
+                .post(Entity.json(null));
+
+        assertHttpStatus(response, Response.Status.BAD_REQUEST);
 
 
     }
 
     @Test
     public void testAccountTransferNotEnoughFunds() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/transfer?from=3&to=1&amount=999999")
-                .body();
-        assertHttpStatus(body, Response.Status.ACCEPTED);
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(1000)));
+        getAccountService().createAccount(new Account(2L, "Mark", BigDecimal.valueOf(1000)));
 
-        Assert.assertEquals(TransferResponse.notEnoughFunds().getCode(), body.as(TransferResponse.class).getCode());
+        Response response = target("api/accounts/transfer")
+                .queryParam("from", 1)
+                .queryParam("to", 2)
+                .queryParam("amount", 999999)
+                .request()
+                .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE));
+
+        assertHttpStatus(response, Response.Status.ACCEPTED);
+
+        Assert.assertEquals(TransferResponse.notEnoughFunds().getCode(),
+                response.readEntity(TransferResponse.class).getCode());
 
     }
 
     @Test
     public void testAccountTransferSame() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/transfer?from=2&to=2&amount=100")
-                .body();
-        assertHttpStatus(body, Response.Status.BAD_REQUEST);
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(10000)));
+        getAccountService().createAccount(new Account(2L, "Mark", BigDecimal.valueOf(10000)));
 
-        Assert.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(), body.as(TransferResponse.class).getCode());
+
+        Response response = target("api/accounts/transfer")
+                .queryParam("from", 2)
+                .queryParam("to", 2)
+                .queryParam("amount", 100)
+                .request()
+                .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE));
+
+        assertHttpStatus(response, Response.Status.BAD_REQUEST);
+
+        Assert.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(),
+                response.readEntity(TransferResponse.class).getCode());
     }
 
 
     @Test
     public void testAccountNegativeAmount() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .post("api/accounts/transfer?from=2&to=1&amount=-100").body();
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(10000)));
+        getAccountService().createAccount(new Account(2L, "Mark", BigDecimal.valueOf(10000)));
 
-        assertHttpStatus(body, Response.Status.BAD_REQUEST);
+        Response response = target("api/accounts/transfer")
+                .queryParam("from", 1)
+                .queryParam("to", 2)
+                .queryParam("amount", -100)
+                .request()
+                .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE));
+        assertHttpStatus(response, Response.Status.BAD_REQUEST);
 
-        Assert.assertEquals(TransferResponse.negativeAmount().getCode(), body.as(TransferResponse.class).getCode());
+        Assert.assertEquals(TransferResponse.negativeAmount().getCode(),
+                response.readEntity(TransferResponse.class).getCode());
 
 
     }
@@ -153,54 +174,59 @@ public class ResourceTest extends BaseTest {
 
     @Test
     public void testGetAccountById() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/1")
-                .body();
+        getAccountService().createAccount(new Account(1L, "Daniel", BigDecimal.valueOf(10000)));
 
-        assertHttpStatus(body, Response.Status.OK);
+        Response response = target("api/accounts")
+                .path(Integer.toString(1))
+                .request().get();
 
-        Account account = body.as(Account.class);
+        assertHttpStatus(response, Response.Status.OK);
+        Account account = response.readEntity(Account.class);
 
-        Assert.assertNotNull("No account in reponse", account);
+        Assert.assertNotNull("No account in response", account);
         Assert.assertEquals(Long.valueOf(1), account.getId());
 
 
     }
 
     @Test
-    public void testGetAccountByName() {
-        String name = accounts.get(0).getName();
+    public void testGetAccountsByName() {
+        String accountName = "Daniel";
+        getAccountService().createAccount(new Account(1L, accountName, BigDecimal.valueOf(10000)));
 
-        String url = String.format("api/accounts/%s?page=0&size=10", name);
+        Response response = target("api/accounts")
+                .path(accountName)
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .request()
+                .get();
 
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .get(url)
-                .body();
+        assertHttpStatus(response, Response.Status.OK);
 
-        assertHttpStatus(body, Response.Status.OK);
-
-        PagedResponse<Account> accountResponse = body.as(new TypeRef<>() {
+        PagedResponse<Account> accountResponse = response.readEntity(new GenericType<>() {
         });
 
         Assert.assertTrue("No accounts in response",
                 CollectionUtils.isNotEmpty(accountResponse.getContent()));
 
-        Assert.assertEquals(name, accountResponse.getContent().get(0).getName());
+        Assert.assertEquals(accountName, accountResponse.getContent().get(0).getName());
     }
 
 
     @Test
-    public void testGetAllAccounts() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts?page=0&size=10")
-                .body();
+    public void testGet10Accounts() {
+        for (int i = 0; i < 10; i++)
+            getAccountService().createAccount(new Account(i + 1L, Integer.toString(i), BigDecimal.valueOf(10000)));
 
-        assertHttpStatus(body, Response.Status.OK);
+        Response response = target("api/accounts")
+                .queryParam("page", 0)
+                .queryParam("size", 10)
+                .request()
+                .get();
 
-        PagedResponse<Account> accountResponse = body.as(new TypeRef<>() {
+        assertHttpStatus(response, Response.Status.OK);
+
+        PagedResponse<Account> accountResponse = response.readEntity(new GenericType<>() {
         });
 
         Assert.assertTrue("No accounts in response",
@@ -212,36 +238,19 @@ public class ResourceTest extends BaseTest {
 
     @Test
     public void testNoSuchAccount() {
-        ResponseBody body = given().when()
-                .port(RunnerUtils.DEFAULT_PORT)
-                .get("api/accounts/99999")
-                .body();
+        Response response = target("api/accounts")
+                .path(Integer.toString(1))
+                .request()
+                .get();
 
-        assertHttpStatus(body, Response.Status.NOT_FOUND);
+        assertHttpStatus(response, Response.Status.NOT_FOUND);
 
-        Assert.assertEquals(TransferResponse.noSuchAccount().getCode(), body.as(TransferResponse.class).getCode());
-
-    }
-
-    private static void assertHttpStatus(ResponseBody body, Response.Status status) {
-        Assert.assertTrue(body instanceof RestAssuredResponseImpl &&
-                ((RestAssuredResponseImpl) body).getGroovyResponse().getStatusCode() == status.getStatusCode());
+        Assert.assertEquals(TransferResponse.noSuchAccount().getCode(),
+                response.readEntity(TransferResponse.class).getCode());
 
     }
 
-
-    private static <T> Object deserialize(String json, Class<T> objectClass) throws IOException {
-        ObjectMapper mapper = new ObjectMapper().
-                setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        return mapper.readValue(json, objectClass);
-    }
-
-
-    private static String serialize(Object object) throws IOException {
-        ObjectMapper mapper = new ObjectMapper().
-                setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        return mapper.writeValueAsString(object);
+    private static void assertHttpStatus(Response body, Response.Status status) {
+        Assert.assertEquals(status.getStatusCode(), body.getStatus());
     }
 }
