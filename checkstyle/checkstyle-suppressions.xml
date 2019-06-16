@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <suppress files="App.java|RunnerUtils.java|ExceptionUtils.java|CriteriaUtils.java|LocatorUtils.java" checks="HideUtilityClassConstructor"/>
+    <suppress files="RunnerUtils.java|ExceptionUtils.java" checks="IllegalCatch"/>
+
+    <suppress files="AccountResource.java" checks="MultipleStringLiterals"/>
+    <suppress files="Beans" checks="DeclarationOrder"/>
+</suppressions>

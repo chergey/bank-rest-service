@@ -1,5 +1,5 @@
 # Bank rest service
-Project featuring REST service <strong> without making use of Spring </strong>.
+Project featuring REST service using Jersey REST framework.
 The premise that rest application can be developed in the same manner as Spring.
 The app is kept as simple as possible.
 
@@ -10,8 +10,7 @@ Stack
 * [HK2](https://javaee.github.io/hk2) Jersey IoC container
 * [EclipseLink](http://www.eclipse.org/eclipselink)
 * [Apache DB](https://db.apache.org) aka Derby, in memory database
-* [REST Assured](http://rest-assured.io) for tests
-
+* [Shiro](https://shiro.apache.org) authentication and authorization framework
 
 Features
 * HATEOAS
@@ -20,8 +19,8 @@ Features
 
 To run
 ```
-mvn package 
-java -jar <app-name> -port=<port>
+mvn package
+sudo docker-compose up --force-recreate
 ```
 
 Sample requests
