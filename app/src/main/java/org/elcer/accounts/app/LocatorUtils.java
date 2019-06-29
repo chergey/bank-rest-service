@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Eager;
+import org.elcer.accounts.hk2.annotations.NoTest;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -20,6 +21,8 @@ import java.util.HashMap;
 public class LocatorUtils {
     public static final String PACKAGE_NAME = "org.elcer.accounts";
 
+
+
     public static AbstractBinder bindServices(ServiceLocator serviceLocator, boolean register) {
         var ac = new AnnotatedClasses();
 
@@ -30,7 +33,7 @@ public class LocatorUtils {
         try {
             cf.detect(PACKAGE_NAME);
             annotatedClasses = ac.getAnnotatedClasses();
-        } catch (IOException|ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             log.error("Error while scanning packages", e);
         }
 
@@ -39,21 +42,24 @@ public class LocatorUtils {
         ServiceLocatorUtilities.addClasses(serviceLocator, classes);
         var bindings = new HashMap<Class<?>, Class<?>>();
         for (var annotatedClass : annotatedClasses) {
-            if (annotatedClass.isInterface()) {
-                var annotation = annotatedClass.getAnnotation(Component.class);
-                Class<?> impl = annotation.value();
-                if (impl == Class.class)
-                    throw new RuntimeException("Component implementation is not defined!");
+            if (!TestUtils.TEST || annotatedClass.getAnnotation(NoTest.class) == null) {
+                if (annotatedClass.isInterface()) {
+                    var annotation = annotatedClass.getAnnotation(Component.class);
+                    Class<?> impl = annotation.value();
+                    if (impl == Class.class)
+                        throw new RuntimeException("Component implementation is not defined!");
 
-                bindings.put(annotatedClass, impl);
-
+                    bindings.put(annotatedClass, impl);
+                }
             }
         }
 
         if (register) {
             for (var annotatedClass : annotatedClasses) {
-                if (annotatedClass.isAnnotationPresent(Eager.class)) {
-                    serviceLocator.getService(annotatedClass);
+                if (!TestUtils.TEST || annotatedClass.getAnnotation(NoTest.class) == null) {
+                    if (annotatedClass.isAnnotationPresent(Eager.class)) {
+                        serviceLocator.getService(annotatedClass);
+                    }
                 }
             }
         }

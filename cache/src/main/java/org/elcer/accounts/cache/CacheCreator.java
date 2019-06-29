@@ -1,7 +1,5 @@
 package org.elcer.accounts.cache;
 
-import com.hazelcast.core.IMap;
-
 public interface CacheCreator {
 
     /**
@@ -11,5 +9,5 @@ public interface CacheCreator {
      * @param <V> value
      * @return javax.Cache instance
      */
-    <K, V> IMap<K, V> getOrCreateCache(String name);
+    <K, V> Cache<K, V> getOrCreateCache(String name);
 }

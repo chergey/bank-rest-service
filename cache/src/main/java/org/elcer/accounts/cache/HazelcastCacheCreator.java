@@ -7,7 +7,6 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 
 import java.util.Collections;
 
@@ -29,14 +28,14 @@ public class HazelcastCacheCreator implements CacheCreator {
     }
 
     private void initializeCache(Config config) {
-        config.addMapConfig(getMapConfig(300).setName("test"));
+        config.addMapConfig(getMapConfig(300).setName("accounts"));
     }
 
     private MapConfig getMapConfig(int ttl) {
         return new MapConfig().setTimeToLiveSeconds(ttl).setEvictionPolicy(EvictionPolicy.LFU);
     }
 
-    public <K, V> IMap<K, V> getOrCreateCache(String name) {
-        return hzClient.getMap(name);
+    public <K, V> Cache<K, V> getOrCreateCache(String name) {
+        return new HazelcastCache<>(hzClient.getMap(name));
     }
 }

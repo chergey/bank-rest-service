@@ -14,9 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("unused")
 public class ConcurrentHashMapSynchronizer<T extends Comparable<T>> implements Synchronizer<T> {
 
-    private final Map<T, Object> slots = new ConcurrentHashMap<>();
-
     private static final Object DUMMY_OBJECT = new Object();
+
+    private final Map<T, Object> slots = new ConcurrentHashMap<>();
 
     private CompareStrategy<T> compareStrategy =
             (candidate1, candidate2) -> candidate1.compareTo(candidate2) > 0;
