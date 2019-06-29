@@ -17,14 +17,29 @@
    limitations under the License.
   -->
 
-<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
-        "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+<!DOCTYPE module
+        PUBLIC '-//Puppy Crawl//DTD Check Configuration 1.3//EN'
+        'http://www.puppycrawl.com/dtds/configuration_1_3.dtd'>
 
 <!-- commons math customization of default Checkstyle behavior -->
 <module name="Checker">
     <property name="localeLanguage" value="en"/>
 
     <module name="TreeWalker">
+
+        <module name="InterfaceIsType"/>
+<!--        <module name="LineLength"/>-->
+        <module name="MethodLength"/>
+        <module name="ParameterNumber"/>
+        <module name="TypeName"/>
+        <module name="AvoidNestedBlocks"/>
+<!--        <module name="EmptyBlock"/>-->
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+        <module name="EmptyStatement"/>
+
+<!--        <module name="DesignForExtension"/>-->
+<!--        <module name="FinalClass"/>-->
 
         <!-- Operator must be at end of wrapped line -->
         <module name="OperatorWrap">
@@ -54,11 +69,8 @@
 
         <!-- Disallow unnecessary instantiation of Boolean, String -->
         <module name="IllegalInstantiation">
-            <property name="classes" value="java.lang.Boolean, java.lang.String"/>
+            <property name="classes" value="java.lang.Boolean, java.lang.String, java.lang.Integer"/>
         </module>
-
-        <!-- Required for SuppressionCommentFilter below -->
-        <module name="FileContentsHolder"/>
 
 
         <module name="UnusedImports"/>
@@ -74,11 +86,6 @@
         <!-- Constant names should obey the traditional all uppercase naming convention -->
         <module name="ConstantName"/>
 
-        <!-- Method parameters and local variables should not hide fields, except in constructors and setters -->
-        <!--        <module name="HiddenField">-->
-        <!--            <property name="ignoreConstructorParameter" value="true"/>-->
-        <!--            <property name="ignoreSetter" value="true"/>-->
-        <!--        </module>-->
 
         <!-- No trailing whitespace -->
         <module name="Regexp">
@@ -117,16 +124,15 @@
         <!-- Don't use = or != for string comparisons -->
         <module name="StringLiteralEquality"/>
 
-
         <!-- String literals more than one character long should not be repeated several times -->
         <!-- the "unchecked" string is also accepted to allow @SuppressWarnings("unchecked") -->
         <module name="MultipleStringLiterals">
             <property name="ignoreStringsRegexp" value='^(("")|(".")|("unchecked"))$'/>
         </module>
+
+
     </module>
     <!--
-
-
 
   Verify that EVERY source file has the appropriate license -->
     <!--        <module name="Header">-->
@@ -142,49 +148,4 @@
     <!-- Require package javadoc -->
     <!--    <module name="JavadocPackage"/>-->
 
-    <!-- Setup special comments to suppress specific checks from source files -->
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop JavadocVariable"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume JavadocVariable"/>
-        <property name="checkFormat" value="JavadocVariable"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop JavadocMethodCheck"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume JavadocMethodCheck"/>
-        <property name="checkFormat" value="JavadocMethodCheck"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop ConstantName"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume ConstantName"/>
-        <property name="checkFormat" value="ConstantName"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop HideUtilityClassConstructor"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume HideUtilityClassConstructor"/>
-        <property name="checkFormat" value="HideUtilityClassConstructor"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop MultipleVariableDeclarations"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume MultipleVariableDeclarations"/>
-        <property name="checkFormat" value="MultipleVariableDeclarations"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop IllegalCatch"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume IllegalCatch"/>
-        <property name="checkFormat" value="IllegalCatch"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop DeclarationOrder"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume DeclarationOrder"/>
-        <property name="checkFormat" value="DeclarationOrder"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop RedundantModifier"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume RedundantModifier"/>
-        <property name="checkFormat" value="RedundantModifier"/>
-    </module>
-    <module name="SuppressionCommentFilter">
-        <property name="offCommentFormat" value="CHECKSTYLE\: stop all"/>
-        <property name="onCommentFormat" value="CHECKSTYLE\: resume all"/>
-    </module>
 </module>

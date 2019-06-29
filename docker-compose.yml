@@ -1,5 +1,9 @@
 version: '3'
 services:
+  hazelcast:
+    image: "hazelcast/hazelcast:3.12.1"
+    ports:
+      - "5701:5701"
   app:
     build: .
     ports:

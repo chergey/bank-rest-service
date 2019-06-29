@@ -1,6 +1,5 @@
 package org.elcer.accounts;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
@@ -26,6 +25,7 @@ import javax.ws.rs.core.Application;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Set;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,7 +34,6 @@ import static org.mockito.Mockito.when;
 public abstract class BaseTest extends JerseyTest {
 
     private ServiceLocator locator;
-
 
     private final Context context = mock(Context.class);
 
@@ -47,8 +46,8 @@ public abstract class BaseTest extends JerseyTest {
 
     @Override
     public void setUp() throws Exception {
-        super.setUp();
         when(context.lookup("java:comp/env/accounts")).thenReturn(entityManagerFactory);
+        super.setUp();
     }
 
     @Override
@@ -71,7 +70,7 @@ public abstract class BaseTest extends JerseyTest {
 
             @Override
             public Enumeration<String> getInitParameterNames() {
-                return Collections.enumeration(Sets.newHashSet("unit:accounts"));
+                return Collections.enumeration(Set.of("unit:accounts"));
             }
         });
 

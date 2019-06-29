@@ -13,6 +13,7 @@
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
             <property name="eclipselink.logging.level" value="INFO"/>
             <property name="eclipselink.session.customizer" value="org.elcer.accounts.db.EclipseLinkSessionCustomizer"/>
+            <property name="eclipselink.descriptor.customizer.Account" value="org.elcer.accounts.cache.CacheCustomizer"/>
         </properties>
 
     </persistence-unit>

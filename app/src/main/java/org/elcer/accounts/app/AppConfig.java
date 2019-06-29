@@ -30,8 +30,6 @@ public class AppConfig extends ResourceConfig {
 
     private void addServices(ServiceLocator serviceLocator) {
         AbstractBinder binder = LocatorUtils.bindServices(serviceLocator, true);
-
-
         register(binder);
     }
 }

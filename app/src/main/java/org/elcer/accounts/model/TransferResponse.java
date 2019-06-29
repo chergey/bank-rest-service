@@ -12,10 +12,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class TransferResponse {
 
-
     private String message;
     private int code;
-
 
     private TransferResponse(String message, int code) {
         this.message = message;

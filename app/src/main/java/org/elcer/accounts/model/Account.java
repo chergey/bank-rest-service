@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class Account {
+public class Account implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -29,7 +30,6 @@ public class Account {
 
     private String name;
     private BigDecimal balance;
-
 
 
     public Account(String name, BigDecimal balance) {

@@ -16,6 +16,8 @@ public class ConcurrentHashMapSynchronizer<T extends Comparable<T>> implements S
 
     private final Map<T, Object> slots = new ConcurrentHashMap<>();
 
+    private static final Object DUMMY_OBJECT = new Object();
+
     private CompareStrategy<T> compareStrategy =
             (candidate1, candidate2) -> candidate1.compareTo(candidate2) > 0;
 
@@ -24,9 +26,9 @@ public class ConcurrentHashMapSynchronizer<T extends Comparable<T>> implements S
         slots.compute(firstToTake, (t, o) -> {
             slots.compute(secondToTake, (t1, o1) -> {
                 action.run();
-                return new Object();
+                return DUMMY_OBJECT;
             });
-            return new Object();
+            return DUMMY_OBJECT;
         });
     }
 
