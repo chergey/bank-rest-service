@@ -35,7 +35,7 @@
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <org.eclipselink.version>2.7.4</org.eclipselink.version>
         <junit.version>4.13-beta-3</junit.version>
-        <groovy.version>3.0.0-beta-1</groovy.version>
+        <groovy.version>3.0.0-beta-2</groovy.version>
         <commons.lang.version>3.9</commons.lang.version>
         <commons.collections.version>4.3</commons.collections.version>
         <shiro.version>1.4.1</shiro.version>
