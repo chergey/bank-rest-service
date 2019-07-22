@@ -2,7 +2,7 @@ package org.elcer.accounts;
 
 
 /**
- * Stanadlone program
+ * Standalone program
  */
 
 public class App {

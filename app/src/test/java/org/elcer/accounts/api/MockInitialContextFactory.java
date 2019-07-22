@@ -13,7 +13,7 @@ public class MockInitialContextFactory implements InitialContextFactory {
         return globalContext;
     }
 
-    static void setGlobalContext(Context context) {
+    public static void setGlobalContext(Context context) {
         globalContext = context;
     }
 

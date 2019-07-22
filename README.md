@@ -6,6 +6,7 @@ The app is kept as simple as possible.
 [![Build Status](https://travis-ci.com/chergey/bank-rest-service.svg?branch=master)](https://travis-ci.com/chergey/bank-rest-service)
 
 Stack
+* JPMS - Java Modules
 * [Jersey](https://jersey.github.io) Java REST Framework
 * [HK2](https://javaee.github.io/hk2) Jersey IoC container
 * [EclipseLink](http://www.eclipse.org/eclipselink)
@@ -13,10 +14,10 @@ Stack
 * [Shiro](https://shiro.apache.org) authentication and authorization framework
 * [Hazelcast](https://hazelcast.com) caching framework
 
-Tests are written in groovy
-Application is deployed in docker alongside with hazelcast
-
 Features
+* Tests are written in groovy
+* Application is deployed in docker alongside with hazelcast
+* Entirely modular - taking advantage of Java Modules
 * HATEOAS
 * Security
 

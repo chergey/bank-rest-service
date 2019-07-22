@@ -9,7 +9,6 @@ import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.plus.jndi.EnvEntry;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.elcer.accounts.app.AppConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -30,31 +29,34 @@ public class RunnerUtils {
 
     private static final String ALL_PATHS = "/*";
 
+    private static final String ACCOUNTS_UNIT = "accounts";
+
     @SuppressWarnings("UnusedReturnValue")
     @SneakyThrows
     public static Server startServer(int port) {
         //  ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         Server server = new Server(port);
 
-        EntityManagerFactory accounts = Persistence.createEntityManagerFactory("accounts");
+        EntityManagerFactory accounts = Persistence.createEntityManagerFactory(ACCOUNTS_UNIT);
 
-        Configuration.ClassList classlist = Configuration.ClassList.setServerDefault(server);
-        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration",
-                "org.eclipse.jetty.plus.webapp.EnvConfiguration",
-                "org.eclipse.jetty.plus.webapp.PlusConfiguration");
+
+//        Configuration.ClassList classlist = Configuration.ClassList.setServerDefault(server);
+//        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration",
+//                "org.eclipse.jetty.plus.webapp.EnvConfiguration",
+//                "org.eclipse.jetty.plus.webapp.PlusConfiguration");
 
 
         var context = new WebAppContext();
         context.setResourceBase("/");
         context.setContextPath("/");
 
-        new EnvEntry(context, "accounts", accounts, true);
+        new EnvEntry(context, ACCOUNTS_UNIT, accounts, true);
 
         server.setHandler(context);
         ServletHolder jerseyServlet = context.addServlet(ServletContainer.class, ALL_PATHS);
         jerseyServlet.setInitOrder(0);
         jerseyServlet.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, AppConfig.class.getName());
-        jerseyServlet.setInitParameter("unit:accounts", "accounts");
+        jerseyServlet.setInitParameter("unit:accounts", ACCOUNTS_UNIT);
         context.addEventListener(new EnvironmentLoaderListener());
 
 

@@ -1,8 +1,9 @@
-package org.elcer.accounts.cache;
+package org.elcer.accounts.db.cache;
 
 
 import org.eclipse.persistence.internal.identitymaps.IdentityMap;
 import org.eclipse.persistence.internal.sessions.AbstractSession;
+import org.elcer.accounts.cache.DefaultCacheInterceptor;
 import org.elcer.accounts.model.Account;
 
 public class AccountCacheInterceptor extends DefaultCacheInterceptor {

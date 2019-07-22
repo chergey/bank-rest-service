@@ -1,4 +1,4 @@
-package org.elcer.accounts.cache;
+package org.elcer.accounts.db.cache;
 
 import org.eclipse.persistence.config.DescriptorCustomizer;
 import org.eclipse.persistence.descriptors.ClassDescriptor;

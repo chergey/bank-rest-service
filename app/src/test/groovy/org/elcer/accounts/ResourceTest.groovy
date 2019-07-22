@@ -6,8 +6,8 @@ import org.elcer.accounts.model.Account
 import org.elcer.accounts.model.PagedResponse
 import org.elcer.accounts.model.TransferResponse
 import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 import javax.ws.rs.client.Entity
 import javax.ws.rs.core.GenericType
@@ -17,7 +17,7 @@ import javax.ws.rs.core.Response
 @Slf4j
 class ResourceTest extends BaseTest {
 
-    @Before
+    @BeforeEach
     void clean() {
         for (Account account : getAccountService().getAllAccounts(0, Integer.MAX_VALUE)) {
             getAccountService().deleteAccount(account)

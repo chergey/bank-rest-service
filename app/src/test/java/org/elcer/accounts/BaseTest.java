@@ -3,7 +3,7 @@ package org.elcer.accounts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.elcer.accounts.api.MockInitialContextRule;
+import org.elcer.accounts.api.MockInitialContextFactory;
 import org.elcer.accounts.app.LocatorUtils;
 import org.elcer.accounts.app.ObjectMapperProvider;
 import org.elcer.accounts.services.AccountService;
@@ -14,7 +14,8 @@ import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonP
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.internal.PersistenceUnitBinder;
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.jvnet.hk2.internal.DynamicConfigurationImpl;
 
 import javax.naming.Context;
@@ -37,17 +38,24 @@ public abstract class BaseTest extends JerseyTest {
 
     private final Context context = mock(Context.class);
 
-    @Rule
-    public MockInitialContextRule mockInitialContextRule = new MockInitialContextRule(context);
-
     private static final EntityManagerFactory entityManagerFactory =
             Persistence.createEntityManagerFactory("accounts");
 
 
     @Override
+    @BeforeEach
     public void setUp() throws Exception {
         when(context.lookup("java:comp/env/accounts")).thenReturn(entityManagerFactory);
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName());
+        MockInitialContextFactory.setGlobalContext(context);
         super.setUp();
+    }
+
+
+    @Override
+    @AfterEach
+    public void tearDown() throws Exception {
+        super.tearDown();
     }
 
     @Override

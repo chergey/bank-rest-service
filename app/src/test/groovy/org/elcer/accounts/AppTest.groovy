@@ -1,20 +1,16 @@
 package org.elcer.accounts
 
-import lombok.extern.slf4j.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.elcer.accounts.api.ExecutorUtils
-import org.elcer.accounts.api.RepeatableRunner
 import org.elcer.accounts.exceptions.NotEnoughFundsException
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.services.AccountService
 import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@RunWith(RepeatableRunner.class)
-@Slf4j
+
 class AppTest extends BaseTest {
 
     private static final int TIMES = 14000
@@ -22,7 +18,6 @@ class AppTest extends BaseTest {
     private static Logger log = LoggerFactory.getLogger(AppTest.class)
 
     @Test
-
     void testConcurrencyAndDeadlocks() {
         def accountService = getAccountService()
 

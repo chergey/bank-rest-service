@@ -22,7 +22,6 @@ public class LocatorUtils {
     public static final String PACKAGE_NAME = "org.elcer.accounts";
 
 
-
     public static AbstractBinder bindServices(ServiceLocator serviceLocator, boolean register) {
         var ac = new AnnotatedClasses();
 
