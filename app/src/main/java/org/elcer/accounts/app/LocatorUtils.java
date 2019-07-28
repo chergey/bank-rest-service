@@ -13,19 +13,24 @@ import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
 
 @Slf4j
 @UtilityClass
 public class LocatorUtils {
+
+    //packages to scan for injection
+    private static final String APP_NAME = "org.elcer.accounts";
+
     public static final String[] PACKAGE_NAMES = {
-            "org.elcer.accounts.app",
-            "org.elcer.accounts.db",
-            "org.elcer.accounts.services",
-            "org.elcer.accounts.hk2",
-            "org.elcer.accounts.resource",
-            "org.elcer.accounts.exceptions.mappers"
+            APP_NAME + ".app",
+            APP_NAME + ".db",
+            APP_NAME + ".services",
+            APP_NAME + ".hk2",
+            APP_NAME + ".resource",
+            APP_NAME + ".exceptions.mappers"
     };
 
 
@@ -33,12 +38,18 @@ public class LocatorUtils {
         var ac = new AnnotatedClasses();
 
         @SuppressWarnings("unchecked")
-        var cf = new AnnotationDetector(new AnnotationReporter(ac, new Class[]{Component.class}));
+        Class<? extends Annotation>[] annotations = new Class[]{Component.class};
+        var cf = new AnnotationDetector(new AnnotationReporter(ac, annotations));
         Class<?>[] annotatedClasses = new Class[0];
 
         try {
             cf.detect(PACKAGE_NAMES);
             annotatedClasses = ac.getAnnotatedClasses();
+            if (annotatedClasses.length == 0) {
+                log.warn("Something is wrong. No components found!");
+            } else {
+                log.info("Found components {}", annotatedClasses.length);
+            }
         } catch (IOException | ClassNotFoundException e) {
             log.error("Error while scanning packages", e);
         }
