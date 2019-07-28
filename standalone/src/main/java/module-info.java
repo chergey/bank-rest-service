@@ -11,8 +11,6 @@ module standalone {
     requires bank.rest.service.jersey;
     requires jetty.servlet.api;
 
-    requires org.mapstruct.processor;
-
     requires org.slf4j;
 
 }

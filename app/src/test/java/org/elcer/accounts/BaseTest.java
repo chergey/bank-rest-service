@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.elcer.accounts.api.MockInitialContextFactory;
+import org.elcer.accounts.app.AppConfig;
 import org.elcer.accounts.app.LocatorUtils;
 import org.elcer.accounts.app.ObjectMapperProvider;
 import org.elcer.accounts.services.AccountService;
@@ -14,6 +15,7 @@ import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonP
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.internal.PersistenceUnitBinder;
 import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.jvnet.hk2.internal.DynamicConfigurationImpl;
@@ -24,9 +26,11 @@ import javax.persistence.Persistence;
 import javax.servlet.http.HttpServlet;
 import javax.ws.rs.core.Application;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Set;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,13 +43,18 @@ public abstract class BaseTest extends JerseyTest {
     private final Context context = mock(Context.class);
 
     private static final EntityManagerFactory entityManagerFactory =
-            Persistence.createEntityManagerFactory("accounts");
+            Persistence.createEntityManagerFactory(AppConfig.PU_NAME);
+
+
+    static {
+        System.setProperty(TestProperties.RECORD_LOG_LEVEL, Integer.toString(Level.FINE.intValue()));
+    }
 
 
     @Override
     @BeforeEach
     public void setUp() throws Exception {
-        when(context.lookup("java:comp/env/accounts")).thenReturn(entityManagerFactory);
+        when(context.lookup("java:comp/env/" + AppConfig.PU_NAME)).thenReturn(entityManagerFactory);
         System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName());
         MockInitialContextFactory.setGlobalContext(context);
         super.setUp();
@@ -67,8 +76,10 @@ public abstract class BaseTest extends JerseyTest {
 
     @Override
     protected Application configure() {
+        rectifyAppClassPath();
+
         ResourceConfig appConfig = new ResourceConfig();
-        appConfig.packages(LocatorUtils.PACKAGE_NAME);
+        appConfig.packages(LocatorUtils.PACKAGE_NAMES);
 
         PersistenceUnitBinder persistenceUnitBinder = new PersistenceUnitBinder(new HttpServlet() {
             @Override
@@ -78,7 +89,7 @@ public abstract class BaseTest extends JerseyTest {
 
             @Override
             public Enumeration<String> getInitParameterNames() {
-                return Collections.enumeration(Set.of("unit:accounts"));
+                return Collections.enumeration(Set.of("unit:" + AppConfig.PU_NAME));
             }
         });
 
@@ -87,26 +98,53 @@ public abstract class BaseTest extends JerseyTest {
         appConfig.register(new AbstractBinder() {
             @Override
             protected void configure() {
-                locator = getServiceLocator();
+                locator = getServiceLocator(this);
                 install(LocatorUtils.bindServices(locator, false));
             }
 
-            private ServiceLocator getServiceLocator() {
-                ServiceLocator locator;
-                try {
-                    DynamicConfigurationImpl dynamicConfiguration = (DynamicConfigurationImpl)
-                            MethodUtils.invokeMethod(this, true, "configuration");
-                    locator = (ServiceLocator) FieldUtils.readDeclaredField(dynamicConfiguration, "locator", true);
 
-                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-                return locator;
-            }
+
         });
 
         return appConfig;
     }
+
+    /*
+    Ugly hack to add app classes (not test) to forked vm classpath
+     */
+    private void rectifyAppClassPath() {
+        var contextClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Object ucp = FieldUtils.readDeclaredField(contextClassLoader, "ucp", true);
+
+            URL[] urls = (URL[]) MethodUtils.invokeMethod(ucp, "getURLs");
+            List<String> paths = Arrays.stream(urls).map(URL::toString)
+                    .filter(s -> s.contains("bank-accounts-jersey"))
+                    .collect(Collectors.toList());
+            if (!paths.contains("/classes")) {
+                String testClassPath = paths.stream().filter(s -> s.contains("test-classes")).findAny().orElseThrow(
+                        () -> new RuntimeException("test-classes path should be present on classpath"));
+                String appClassPath = testClassPath.replace("test-classes", "classes");
+                MethodUtils.invokeMethod(ucp, "addURL", new URL("file:/" + appClassPath));
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ServiceLocator getServiceLocator(AbstractBinder binder) {
+        ServiceLocator locator;
+        try {
+            DynamicConfigurationImpl dynamicConfiguration = (DynamicConfigurationImpl)
+                    MethodUtils.invokeMethod(binder, true, "configuration");
+            locator = (ServiceLocator) FieldUtils.readDeclaredField(dynamicConfiguration, "locator", true);
+
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return locator;
+    }
+
 
     AccountService getAccountService() {
         return locator.getService(AccountService.class);

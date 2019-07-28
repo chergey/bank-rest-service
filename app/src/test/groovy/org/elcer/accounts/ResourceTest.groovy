@@ -1,11 +1,10 @@
 package org.elcer.accounts
 
-import lombok.extern.slf4j.Slf4j
 import org.apache.commons.collections4.CollectionUtils
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.model.PagedResponse
 import org.elcer.accounts.model.TransferResponse
-import org.junit.Assert
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -14,7 +13,6 @@ import javax.ws.rs.core.GenericType
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
-@Slf4j
 class ResourceTest extends BaseTest {
 
     @BeforeEach
@@ -33,7 +31,7 @@ class ResourceTest extends BaseTest {
                 .request()
                 .delete()
 
-        assertHttpStatus(response, Response.Status.OK)
+        assertHttpStatus(Response.Status.OK, response)
 
     }
 
@@ -42,27 +40,27 @@ class ResourceTest extends BaseTest {
     void testReplaceAccount() {
         getAccountService().createAccount(new Account(1L, "Denis", 40000 as BigDecimal))
 
-        Account account = new Account("Daniel",10000 as  BigDecimal)
+        Account account = new Account("Daniel", 10000 as BigDecimal)
         Response response = target("api/accounts")
                 .path(Integer.toString(1))
                 .request()
                 .put(Entity.json(account))
 
         Account replacedAccount = response.readEntity(Account.class)
-        assertHttpStatus(response, Response.Status.CREATED)
-        Assert.assertNotNull(replacedAccount)
+        assertHttpStatus(Response.Status.CREATED, response)
+        Assertions.assertNotNull(replacedAccount)
 
-        Assert.assertEquals("Account balance should be 10000",
-                replacedAccount.getBalance(), 10000 as BigDecimal)
-        Assert.assertEquals("Account name should be Daniel",
-                replacedAccount.getName(), "Daniel")
+        Assertions.assertEquals(replacedAccount.getBalance(), 10000 as BigDecimal,
+                "Account balance should be 10000")
+
+        Assertions.assertEquals("Daniel", replacedAccount.getName(),
+                "Account name should be Daniel")
 
     }
 
 
     @Test
     void testCreateAccount() {
-
         Account account = new Account("Daniel", 10000 as BigDecimal);
 
         Response response = target("api/accounts")
@@ -70,10 +68,10 @@ class ResourceTest extends BaseTest {
                 .post(Entity.json(account));
 
         Account createdAccount = response.readEntity(Account.class)
-        Assert.assertNotNull("Account can't be null", createdAccount)
-        Assert.assertNotNull("Account id can't be null", createdAccount.getId())
+        Assertions.assertNotNull(createdAccount, "Account can't be null")
+        Assertions.assertNotNull(createdAccount.getId(), "Account id can't be null")
 
-        assertHttpStatus(response, Response.Status.CREATED)
+        assertHttpStatus(Response.Status.CREATED, response)
 
     }
 
@@ -81,7 +79,7 @@ class ResourceTest extends BaseTest {
     void testAccountTransferSuccessfully() {
         def accountService = getAccountService()
         accountService.createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
-        accountService.createAccount(new Account(2L, "Mark",10000 as BigDecimal))
+        accountService.createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
 
         Response response = target("api/accounts/transfer")
                 .queryParam("from", 1)
@@ -90,9 +88,9 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.json(null))
 
-        assertHttpStatus(response, Response.Status.OK)
+        assertHttpStatus(Response.Status.OK, response)
 
-        Assert.assertEquals(TransferResponse.success(), response.readEntity(TransferResponse.class))
+        Assertions.assertEquals(TransferResponse.success(), response.readEntity(TransferResponse.class))
 
 
     }
@@ -101,8 +99,8 @@ class ResourceTest extends BaseTest {
     void testAccountTransfer400() {
         def accountService = getAccountService()
 
-        accountService.createAccount(new Account(1L, "Daniel",  10000 as BigDecimal))
-        accountService.createAccount(new Account(2L, "Mark",  10000 as BigDecimal))
+        accountService.createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
+        accountService.createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
 
 
         Response response = target("api/accounts/transfer")
@@ -112,7 +110,7 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.json(null))
 
-        assertHttpStatus(response, Response.Status.BAD_REQUEST)
+        assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
 
     }
@@ -120,8 +118,8 @@ class ResourceTest extends BaseTest {
     @Test
     void testAccountTransferNotEnoughFunds() {
         def accountService = getAccountService()
-        accountService.createAccount(new Account(1L, "Daniel",1000 as BigDecimal))
-        accountService.createAccount(new Account(2L, "Mark",1000 as BigDecimal))
+        accountService.createAccount(new Account(1L, "Daniel", 1000 as BigDecimal))
+        accountService.createAccount(new Account(2L, "Mark", 1000 as BigDecimal))
 
         Response response = target("api/accounts/transfer")
                 .queryParam("from", 1)
@@ -130,9 +128,9 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE))
 
-        assertHttpStatus(response, Response.Status.ACCEPTED)
+        assertHttpStatus(Response.Status.ACCEPTED, response)
 
-        Assert.assertEquals(TransferResponse.notEnoughFunds().getCode(),
+        Assertions.assertEquals(TransferResponse.notEnoughFunds().getCode(),
                 response.readEntity(TransferResponse.class).getCode())
 
     }
@@ -150,16 +148,16 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE))
 
-        assertHttpStatus(response, Response.Status.BAD_REQUEST)
+        assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
-        Assert.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(),
+        Assertions.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(),
                 response.readEntity(TransferResponse.class).getCode())
     }
 
 
     @Test
     void testAccountNegativeAmount() {
-        getAccountService().createAccount(new Account(1L, "Daniel",10000 as BigDecimal))
+        getAccountService().createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
         getAccountService().createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
 
         Response response = target("api/accounts/transfer")
@@ -169,9 +167,9 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE))
 
-        assertHttpStatus(response, Response.Status.BAD_REQUEST)
+        assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
-        Assert.assertEquals(TransferResponse.negativeAmount().getCode(),
+        Assertions.assertEquals(TransferResponse.negativeAmount().getCode(),
                 response.readEntity(TransferResponse.class).getCode())
 
 
@@ -186,19 +184,19 @@ class ResourceTest extends BaseTest {
                 .path(Integer.toString(1))
                 .request().get();
 
-        assertHttpStatus(response, Response.Status.OK)
+        assertHttpStatus(Response.Status.OK, response)
         Account account = response.readEntity(Account.class)
 
-        Assert.assertNotNull("No account in response", account)
-        Assert.assertEquals(Long.valueOf(1), account.getId())
+        Assertions.assertNotNull(account, "No account in response")
+        Assertions.assertEquals(Long.valueOf(1), account.getId())
 
 
     }
 
     @Test
     void testGetAccountsByName() {
-        String accountName = "Daniel";
-        getAccountService().createAccount(new Account(1L, accountName,10000 as BigDecimal))
+        String accountName = "Daniel"
+        getAccountService().createAccount(new Account(1L, accountName, 10000 as BigDecimal))
 
         Response response = target("api/accounts")
                 .path(accountName)
@@ -207,15 +205,15 @@ class ResourceTest extends BaseTest {
                 .request()
                 .get()
 
-        assertHttpStatus(response, Response.Status.OK)
+        assertHttpStatus(Response.Status.OK, response)
 
         PagedResponse<Account> accountResponse = response.readEntity(new GenericType<PagedResponse<Account>>() {
-        });
+        })
 
-        Assert.assertTrue("No accounts in response",
-                CollectionUtils.isNotEmpty(accountResponse.getContent()))
+        Assertions.assertTrue(CollectionUtils.isNotEmpty(accountResponse.getContent()),
+                "No accounts in response")
 
-        Assert.assertEquals(accountName, accountResponse.getContent().get(0).getName())
+        Assertions.assertEquals(accountName, accountResponse.getContent().get(0).getName())
     }
 
 
@@ -230,15 +228,15 @@ class ResourceTest extends BaseTest {
                 .request()
                 .get()
 
-        assertHttpStatus(response, Response.Status.OK);
+        assertHttpStatus(Response.Status.OK, response);
 
         PagedResponse<Account> accountResponse = response.readEntity(new GenericType<PagedResponse<Account>>() {
         })
 
-        Assert.assertTrue("No accounts in response",
-                CollectionUtils.isNotEmpty(accountResponse.getContent()))
+        Assertions.assertTrue(CollectionUtils.isNotEmpty(accountResponse.getContent()),
+                "No accounts in response")
 
-        Assert.assertEquals(10, accountResponse.getContent().size())
+        Assertions.assertEquals(10, accountResponse.getContent().size())
 
     }
 
@@ -249,15 +247,15 @@ class ResourceTest extends BaseTest {
                 .request()
                 .get()
 
-        assertHttpStatus(response, Response.Status.NOT_FOUND);
+        assertHttpStatus(Response.Status.NOT_FOUND, response)
 
-        Assert.assertEquals(TransferResponse.noSuchAccount().getCode(),
+        Assertions.assertEquals(TransferResponse.noSuchAccount().getCode(),
                 response.readEntity(TransferResponse.class).getCode())
 
     }
 
 
-    private static void assertHttpStatus(Response body, Response.Status status) {
-        Assert.assertEquals(status.getStatusCode(), body.getStatus())
+    private static void assertHttpStatus(Response.Status expectedStatus, Response body) {
+        Assertions.assertEquals(expectedStatus.getStatusCode(), body.getStatus())
     }
 }

@@ -19,7 +19,14 @@ import java.util.HashMap;
 @Slf4j
 @UtilityClass
 public class LocatorUtils {
-    public static final String PACKAGE_NAME = "org.elcer.accounts";
+    public static final String[] PACKAGE_NAMES = {
+            "org.elcer.accounts.app",
+            "org.elcer.accounts.db",
+            "org.elcer.accounts.services",
+            "org.elcer.accounts.hk2",
+            "org.elcer.accounts.resource",
+            "org.elcer.accounts.exceptions.mappers"
+    };
 
 
     public static AbstractBinder bindServices(ServiceLocator serviceLocator, boolean register) {
@@ -30,7 +37,7 @@ public class LocatorUtils {
         Class<?>[] annotatedClasses = new Class[0];
 
         try {
-            cf.detect(PACKAGE_NAME);
+            cf.detect(PACKAGE_NAMES);
             annotatedClasses = ac.getAnnotatedClasses();
         } catch (IOException | ClassNotFoundException e) {
             log.error("Error while scanning packages", e);

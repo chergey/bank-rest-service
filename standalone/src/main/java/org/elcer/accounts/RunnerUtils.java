@@ -29,7 +29,6 @@ public class RunnerUtils {
 
     private static final String ALL_PATHS = "/*";
 
-    private static final String ACCOUNTS_UNIT = "accounts";
 
     @SuppressWarnings("UnusedReturnValue")
     @SneakyThrows
@@ -37,26 +36,19 @@ public class RunnerUtils {
         //  ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         Server server = new Server(port);
 
-        EntityManagerFactory accounts = Persistence.createEntityManagerFactory(ACCOUNTS_UNIT);
-
-
-//        Configuration.ClassList classlist = Configuration.ClassList.setServerDefault(server);
-//        classlist.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration",
-//                "org.eclipse.jetty.plus.webapp.EnvConfiguration",
-//                "org.eclipse.jetty.plus.webapp.PlusConfiguration");
-
+        EntityManagerFactory accounts = Persistence.createEntityManagerFactory(AppConfig.PU_NAME);
 
         var context = new WebAppContext();
         context.setResourceBase("/");
         context.setContextPath("/");
 
-        new EnvEntry(context, ACCOUNTS_UNIT, accounts, true);
+        new EnvEntry(context, AppConfig.PU_NAME, accounts, true);
 
         server.setHandler(context);
         ServletHolder jerseyServlet = context.addServlet(ServletContainer.class, ALL_PATHS);
         jerseyServlet.setInitOrder(0);
         jerseyServlet.setInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, AppConfig.class.getName());
-        jerseyServlet.setInitParameter("unit:accounts", ACCOUNTS_UNIT);
+        jerseyServlet.setInitParameter("unit:" + AppConfig.PU_NAME, AppConfig.PU_NAME);
         context.addEventListener(new EnvironmentLoaderListener());
 
 
