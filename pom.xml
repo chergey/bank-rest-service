@@ -9,6 +9,7 @@
     <modules>
         <module>cache</module>
         <module>app</module>
+        <module>standalone</module>
     </modules>
 
     <name>parent</name>
@@ -26,23 +27,48 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
 
-        <jersey.version>2.28</jersey.version>
-        <jackson.version>2.9.9</jackson.version>
+        <jetty.version>10.0.0-alpha0</jetty.version>
+        <jersey.version>2.29</jersey.version>
         <slf4j.version>2.0.0-alpha0</slf4j.version>
         <logback.version>1.3.0-alpha4</logback.version>
-        <guava.version>28.0-jre</guava.version>
         <lombok.version>1.18.8</lombok.version>
-        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
         <org.eclipselink.version>2.7.4</org.eclipselink.version>
-        <junit.version>4.13-beta-3</junit.version>
+        <junit.version>5.5.1-SNAPSHOT</junit.version>
+        <junit.platform.version>1.5.1</junit.platform.version>
         <groovy.version>3.0.0-beta-2</groovy.version>
+        <shiro.version>1.4.1</shiro.version>
+        <hk2.version>2.5.0</hk2.version>
+        <guava.version>28.0-jre</guava.version>
         <commons.lang.version>3.9</commons.lang.version>
         <commons.collections.version>4.3</commons.collections.version>
-        <shiro.version>1.4.1</shiro.version>
 
+        <!-- module arguments for forked surefire vm, not sure how to obviate -->
         <argLine>
-            --add-exports=java.base/jdk.internal.misc=ALL-UNNAMED
-            --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+            --illegal-access=permit
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts=ALL-UNNAMED
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.hk2=ALL-UNNAMED
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.services=ALL-UNNAMED
+
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.model=org.eclipse.persistence.core
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.model=ALL-UNNAMED
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.model=com.fasterxml.jackson.databind
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db=ALL-UNNAMED
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db.cache=ALL-UNNAMED
+
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=java.naming
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=ALL-UNNAMED
+
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.resource=jersey.server
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.resource=ALL-UNNAMED
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.resource=hk2.locator
+            --add-opens=bank.rest.service.jersey/org.elcer.accounts.exceptions.mappers=hk2.locator
+
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.hk2=hk2.locator
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.services=hk2.locator
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.services.synchronizers=hk2.locator
+            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db.cache=hk2.locator
+            --add-opens=java.base/jdk.internal.loader=org.apache.commons.lang3
+
         </argLine>
     </properties>
 
@@ -109,10 +135,23 @@
                 </dependency>
             </dependencies>
         </profile>
-
-
     </profiles>
 
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>class-model</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.hk2</groupId>
+                <artifactId>config-types</artifactId>
+                <version>${hk2.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.apache.shiro</groupId>
@@ -123,20 +162,29 @@
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-jaxrs</artifactId>
             <version>${shiro.version}</version>
-        </dependency>
 
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- EE spec-->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet-api.version}</version>
-        </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
+
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>2.1.5</version>
+        </dependency>
+
+
         <!-- EE spec-->
 
 
@@ -158,27 +206,12 @@
             <version>${jersey.version}</version>
         </dependency>
 
-        <!-- needed for jersey, not sure how to disable JAXB classes scanning-->
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <!-- jersey -->
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-
         <!-- orm -->
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.jpa</artifactId>
             <version>${org.eclipselink.version}</version>
         </dependency>
-
 
         <!-- logging -->
         <dependency>
@@ -202,17 +235,38 @@
 
         <!-- testing -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit.platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-runner</artifactId>
+            <version>${junit.platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>${groovy.version}</version>
             <type>pom</type>
             <scope>test</scope>
+
+            <exclusions>
+                <!-- to prevent surefire from selecting it as default test framework -->
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy-testng</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -236,18 +290,38 @@
             <scope>provided</scope>
         </dependency>
 
-
-
+        <!-- commons and guava-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons.lang.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>${commons.collections.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <!-- commons -->
+
+
+        <!-- needed for forked surefire vm -->
+        <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit-platform</artifactId>
+            <version>2.22.2</version>
+        </dependency>
+
+        <!-- without this does not compile with lombok -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.3.0.Final</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -255,7 +329,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.1.0</version>
                 <executions>
@@ -317,12 +390,10 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>2.22.2</version>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M2</version>
                 <executions>
@@ -335,7 +406,7 @@
                             <rules>
                                 <requireProperty>
                                     <property>project.db</property>
-                                    <message>Either derby or postgres profile should be active</message>
+                                    <message>Either derby or postgres property should be active</message>
                                 </requireProperty>
                                 <evaluateBeanshell>
                                     <condition><![CDATA[
@@ -356,12 +427,24 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <compilerArgs>
+                        <arg>-sourcepath</arg>
+                        <arg>
+                            ${project.basedir}/src/main/java${path.separator}${project.basedir}/target/generated-sources/annotations${path.separator}/
+                        </arg>
+                    </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -378,8 +461,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <!-- 3.1.1. doesn't work -->
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -389,12 +473,13 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <show>private</show>
-                    <nohelp>true</nohelp>
+                    <additionalOptions>
+                        <additionalOption>-Xdoclint:none</additionalOption>
+                    </additionalOptions>
+                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.0.1</version>
                 <executions>
@@ -406,6 +491,31 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.22.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+
+    <repositories>
+        <repository>
+            <id>jacoco</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
 </project>

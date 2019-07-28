@@ -1,28 +1,21 @@
 package org.elcer.accounts
 
-import lombok.extern.slf4j.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.elcer.accounts.api.ExecutorUtils
-import org.elcer.accounts.api.RepeatableRunner
 import org.elcer.accounts.exceptions.NotEnoughFundsException
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.services.AccountService
-import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Assertions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@RunWith(RepeatableRunner.class)
-@Slf4j
 class AppTest extends BaseTest {
 
     private static final int TIMES = 14000
 
     private static Logger log = LoggerFactory.getLogger(AppTest.class)
 
-    @Test
-
+   // @RepeatedTest(2)
     void testConcurrencyAndDeadlocks() {
         def accountService = getAccountService()
 
@@ -62,15 +55,12 @@ class AppTest extends BaseTest {
                 thirdInTheEnd.getBalance() +
                 fourthInTheEnd.getBalance()
 
-        Assert.assertTrue("Balance can't be less than zero",
-                firstInTheEnd.getBalance() >= 0g)
-        Assert.assertTrue("Balance can't be less than zero",
-                secondInTheEnd.getBalance() >= 0g)
-        Assert.assertTrue("Balance can't be less than zero",
-                thirdInTheEnd.getBalance() >= 0g)
-        Assert.assertTrue("Balance can't be less than zero",
-                fourthInTheEnd.getBalance() >= 0g)
-        Assert.assertEquals(startingTotal, endingTotal)
+
+        Assertions.assertTrue(firstInTheEnd.getBalance() >= 0g, "Balance can't be less than zero")
+        Assertions.assertTrue(secondInTheEnd.getBalance() >= 0g, "Balance can't be less than zero")
+        Assertions.assertTrue(thirdInTheEnd.getBalance() >= 0g, "Balance can't be less than zero")
+        Assertions.assertTrue(fourthInTheEnd.getBalance() >= 0g, "Balance can't be less than zero")
+        Assertions.assertEquals(startingTotal, endingTotal)
 
 
     }

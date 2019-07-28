@@ -13,8 +13,11 @@ import javax.inject.Inject;
 @Slf4j
 public class AppConfig extends ResourceConfig {
 
+    //property names common to the whole application
     public static final String PAGE_PARAM_NAME = "page", SIZE_PARAM_NAME = "size";
     public static final String DEFAULT_PAGESIZE = "20";
+
+    public static final String PU_NAME = "accounts";
 
     @Inject
     public AppConfig(ServiceLocator serviceLocator) {
@@ -22,7 +25,7 @@ public class AppConfig extends ResourceConfig {
     }
 
     private void bootstrap(ServiceLocator serviceLocator) {
-        packages(LocatorUtils.PACKAGE_NAME);
+        packages(LocatorUtils.PACKAGE_NAMES);
         register(ShiroFeature.class);
         register(JacksonFeature.class);
         addServices(serviceLocator);

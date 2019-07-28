@@ -49,7 +49,7 @@ public class AccountResource {
 
     @PUT
     @Path("/accounts/{id:\\d+}")
-    @RequiresPermissions("write")
+    @RequiresPermissions("users:update")
     public Response replaceAccount(@PathParam("id") long id, Account account) {
         var builder = uriInfo.getAbsolutePathBuilder();
         Account replacedAccount = accountService.replaceAccount(id, account);
