@@ -4,6 +4,7 @@ The premise that rest application can be developed in the same manner as Spring.
 The app is kept as simple as possible.
 
 [![Build Status](https://travis-ci.com/chergey/bank-rest-service.svg?branch=master)](https://travis-ci.com/chergey/bank-rest-service)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=chergey_bank-rest-service&metric=alert_status)](https://sonarcloud.io/dashboard?id=chergey_bank-rest-service)
 
 Stack
 * JPMS - Java Modules

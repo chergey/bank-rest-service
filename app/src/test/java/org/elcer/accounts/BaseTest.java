@@ -103,7 +103,6 @@ public abstract class BaseTest extends JerseyTest {
             }
 
 
-
         });
 
         return appConfig;
@@ -115,12 +114,15 @@ public abstract class BaseTest extends JerseyTest {
     private void rectifyAppClassPath() {
         var contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
-            Object ucp = FieldUtils.readDeclaredField(contextClassLoader, "ucp", true);
-
+            var ucp = FieldUtils.readDeclaredField(contextClassLoader, "ucp", true);
             URL[] urls = (URL[]) MethodUtils.invokeMethod(ucp, "getURLs");
             List<String> paths = Arrays.stream(urls).map(URL::toString)
-                    .filter(s -> s.contains("bank-accounts-jersey"))
+                    .filter(s -> s.contains("/app/target/"))
                     .collect(Collectors.toList());
+            if (paths.size() == 0) {
+                throw new RuntimeException("Application build dir is not found");
+            }
+
             if (!paths.contains("/classes")) {
                 String testClassPath = paths.stream().filter(s -> s.contains("test-classes")).findAny().orElseThrow(
                         () -> new RuntimeException("test-classes path should be present on classpath"));
@@ -132,10 +134,13 @@ public abstract class BaseTest extends JerseyTest {
         }
     }
 
+    /*
+    Get service locator out of binder
+     */
     private ServiceLocator getServiceLocator(AbstractBinder binder) {
         ServiceLocator locator;
         try {
-            DynamicConfigurationImpl dynamicConfiguration = (DynamicConfigurationImpl)
+            var dynamicConfiguration = (DynamicConfigurationImpl)
                     MethodUtils.invokeMethod(binder, true, "configuration");
             locator = (ServiceLocator) FieldUtils.readDeclaredField(dynamicConfiguration, "locator", true);
 
