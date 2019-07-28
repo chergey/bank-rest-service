@@ -13,7 +13,7 @@
     <artifactId>standalone</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>standalone</name>
-    <description>Service as a stanadlone program (with main function)</description>
+    <description>Service as a standalone program (with main function)</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

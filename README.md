@@ -10,7 +10,7 @@ Stack
 * JPMS - Java Modules
 * [Jersey](https://jersey.github.io) Java REST Framework
 * [HK2](https://javaee.github.io/hk2) Jersey IoC container
-* [EclipseLink](http://www.eclipse.org/eclipselink)
+* [EclipseLink](http://www.eclipse.org/eclipselink) ORM
 * [Apache DB](https://db.apache.org) aka Derby, in memory database
 * [Shiro](https://shiro.apache.org) authentication and authorization framework
 * [Hazelcast](https://hazelcast.com) caching framework

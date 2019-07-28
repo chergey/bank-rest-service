@@ -42,33 +42,12 @@
         <commons.lang.version>3.9</commons.lang.version>
         <commons.collections.version>4.3</commons.collections.version>
 
-        <!-- module arguments for forked surefire vm, not sure how to obviate -->
+        <!-- module exports of test packages for forked surefire vm-->
         <argLine>
-            --illegal-access=permit
             --add-opens=bank.rest.service.jersey/org.elcer.accounts=ALL-UNNAMED
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.hk2=ALL-UNNAMED
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.services=ALL-UNNAMED
-
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.model=org.eclipse.persistence.core
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.model=ALL-UNNAMED
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.model=com.fasterxml.jackson.databind
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db=ALL-UNNAMED
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db.cache=ALL-UNNAMED
-
             --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=java.naming
             --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=ALL-UNNAMED
-
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.resource=jersey.server
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.resource=ALL-UNNAMED
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.resource=hk2.locator
-            --add-opens=bank.rest.service.jersey/org.elcer.accounts.exceptions.mappers=hk2.locator
-
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.hk2=hk2.locator
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.services=hk2.locator
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.services.synchronizers=hk2.locator
-            --add-exports=bank.rest.service.jersey/org.elcer.accounts.db.cache=hk2.locator
             --add-opens=java.base/jdk.internal.loader=org.apache.commons.lang3
-
         </argLine>
     </properties>
 

@@ -1,5 +1,5 @@
 module bank.rest.service.jersey {
-    exports org.elcer.accounts.app;
+
     requires lombok;
     requires org.apache.commons.lang3;
     requires hk2.api;
@@ -25,8 +25,24 @@ module bank.rest.service.jersey {
     requires jersey.hk2;
     requires cache;
     requires java.naming;
-    requires org.mapstruct.processor;
     requires java.logging;
+
+
+    exports org.elcer.accounts.app;
+    exports org.elcer.accounts.db;
+    exports org.elcer.accounts.db.cache;
+    exports org.elcer.accounts.model;
+    opens org.elcer.accounts.services;
+    opens org.elcer.accounts.hk2;
+
+    opens org.elcer.accounts.resource;
+    opens org.elcer.accounts.model to org.eclipse.persistence.core;
+    opens org.elcer.accounts.exceptions.mappers to hk2.locator;
+
+    exports org.elcer.accounts.resource to jersey.server;
+    exports org.elcer.accounts.services to hk2.locator;
+    exports org.elcer.accounts.services.synchronizers to hk2.locator;
+    exports org.elcer.accounts.hk2 to hk2.locator;
 
     uses org.glassfish.jersey.inject.hk2.Hk2InjectionManagerFactory;
 

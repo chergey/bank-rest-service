@@ -6,6 +6,7 @@ import org.elcer.accounts.exceptions.NotEnoughFundsException
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.services.AccountService
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.RepeatedTest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -15,7 +16,7 @@ class AppTest extends BaseTest {
 
     private static Logger log = LoggerFactory.getLogger(AppTest.class)
 
-   // @RepeatedTest(2)
+    @RepeatedTest(1)
     void testConcurrencyAndDeadlocks() {
         def accountService = getAccountService()
 
