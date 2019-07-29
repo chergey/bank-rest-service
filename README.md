@@ -14,13 +14,13 @@ Stack
 * [Apache DB](https://db.apache.org) aka Derby, in memory database
 * [Shiro](https://shiro.apache.org) authentication and authorization framework
 * [Hazelcast](https://hazelcast.com) caching framework
+* [JUnit 5](https://junit.org/junit5/) testing framework
 
-Features
+Other features
 * Tests are written in groovy
 * Application is deployed in docker alongside with hazelcast
 * Entirely modular - taking advantage of Java Modules
-* HATEOAS
-* Security
+* [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS)
 
 
 To run

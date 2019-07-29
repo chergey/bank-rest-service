@@ -39,11 +39,11 @@ public class LocatorUtils {
 
         @SuppressWarnings("unchecked")
         Class<? extends Annotation>[] annotations = new Class[]{Component.class};
-        var cf = new AnnotationDetector(new AnnotationReporter(ac, annotations));
-        Class<?>[] annotatedClasses = new Class[0];
+        var detector = new AnnotationDetector(new AnnotationReporter(ac, annotations));
 
+        Class<?>[] annotatedClasses = new Class[0];
         try {
-            cf.detect(PACKAGE_NAMES);
+            detector.detect(PACKAGE_NAMES);
             annotatedClasses = ac.getAnnotatedClasses();
             if (annotatedClasses.length == 0) {
                 log.warn("Something is wrong. No components found!");

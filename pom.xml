@@ -42,7 +42,7 @@
         <commons.lang.version>3.9</commons.lang.version>
         <commons.collections.version>4.3</commons.collections.version>
 
-        <!-- module exports of test packages for forked surefire vm-->
+        <!-- extra module exports of test packages for forked surefire vm-->
         <argLine>
             --add-opens=bank.rest.service.jersey/org.elcer.accounts=ALL-UNNAMED
             --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=java.naming
@@ -209,20 +209,30 @@
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
         </dependency>
+
+        <!--needed for shiro -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
         <!--logging -->
 
 
         <!-- testing -->
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-launcher</artifactId>
-            <version>${junit.platform.version}</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- junit5 platform -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -250,7 +260,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.28.2</version>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
         <!-- end testing -->

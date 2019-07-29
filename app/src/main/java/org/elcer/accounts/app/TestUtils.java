@@ -10,10 +10,15 @@ public class TestUtils {
 
     private static boolean isTest() {
         try {
-            Class.forName("org.junit.Assert");
+            Class.forName("org.junit.Test");
         } catch (ClassNotFoundException e) {
-            return false;
+            try {
+                Class.forName("org.junit.jupiter.api.Test");
+            } catch (ClassNotFoundException e2) {
+                return false;
+            }
         }
         return true;
     }
+
 }

@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Provider validating required parameters at the request time
@@ -31,9 +30,16 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
         final Method resourceMethod = resourceInfo.getResourceMethod();
         Arrays.stream(resourceMethod.getParameters())
-                .map(p -> p.getAnnotation(Required.class))
-                .filter(Objects::nonNull)
-                .findAny().ifPresent(p -> context.register(new RequiredParamFilter(resourceMethod)));
+                .filter(p -> p.getAnnotation(Required.class) != null)
+                .peek(p-> {
+                    PathParam pathParam = p.getAnnotation(PathParam.class);
+                    QueryParam queryParam = p.getAnnotation(QueryParam.class);
+                    if (pathParam != null && queryParam != null) {
+                          throw new RuntimeException("Both PathParam and QueryParam are defined. Choose only one!");
+                    }
+                })
+                .findAny()
+                .ifPresent(p -> context.register(new RequiredParamFilter(resourceMethod)));
     }
 
     private static class RequiredParamFilter implements ContainerRequestFilter {
@@ -52,17 +58,16 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
             for (Parameter parameter : resourceMethod.getParameters()) {
                 Required requiredAnn = parameter.getAnnotation(Required.class);
                 if (requiredAnn == null) continue;
-
                 String value = null;
 
                 PathParam pathParam = parameter.getAnnotation(PathParam.class);
-                QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
-
-                if (queryParam != null) {
-                    value = queryParam.value();
-                }
                 if (pathParam != null) {
                     value = pathParam.value();
+                }
+
+                QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
+                if (queryParam != null) {
+                    value = queryParam.value();
                 }
 
                 if (value == null) {

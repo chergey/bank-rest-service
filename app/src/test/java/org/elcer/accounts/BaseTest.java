@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.jvnet.hk2.internal.DynamicConfigurationImpl;
 
 import javax.naming.Context;
+import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.servlet.http.HttpServlet;
@@ -45,18 +46,20 @@ public abstract class BaseTest extends JerseyTest {
     private static final EntityManagerFactory entityManagerFactory =
             Persistence.createEntityManagerFactory(AppConfig.PU_NAME);
 
-
     static {
         System.setProperty(TestProperties.RECORD_LOG_LEVEL, Integer.toString(Level.FINE.intValue()));
     }
 
+    private void setupJndi() throws NamingException {
+        when(context.lookup("java:comp/env/" + AppConfig.PU_NAME)).thenReturn(entityManagerFactory);
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName());
+        MockInitialContextFactory.setGlobalContext(context);
+    }
 
     @Override
     @BeforeEach
     public void setUp() throws Exception {
-        when(context.lookup("java:comp/env/" + AppConfig.PU_NAME)).thenReturn(entityManagerFactory);
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName());
-        MockInitialContextFactory.setGlobalContext(context);
+        setupJndi();
         super.setUp();
     }
 

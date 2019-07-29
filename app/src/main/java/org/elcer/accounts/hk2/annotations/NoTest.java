@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Annotation used to indicate that the class is injected when running tests
+ */
 @Retention(RUNTIME)
 @Target({TYPE})
 public @interface NoTest {
