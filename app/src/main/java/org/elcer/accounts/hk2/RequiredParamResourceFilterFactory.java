@@ -31,11 +31,11 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
         final Method resourceMethod = resourceInfo.getResourceMethod();
         Arrays.stream(resourceMethod.getParameters())
                 .filter(p -> p.getAnnotation(Required.class) != null)
-                .peek(p-> {
+                .peek(p -> {
                     PathParam pathParam = p.getAnnotation(PathParam.class);
                     QueryParam queryParam = p.getAnnotation(QueryParam.class);
                     if (pathParam != null && queryParam != null) {
-                          throw new RuntimeException("Both PathParam and QueryParam are defined. Choose only one!");
+                        throw new RuntimeException("Both PathParam and QueryParam are defined. Choose only one!");
                     }
                 })
                 .findAny()
@@ -73,14 +73,15 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
                 if (value == null) {
                     throw new RuntimeException("No @PathParam or @QueryParam defined!");
                 }
-
                 if (CollectionUtils.isEmpty(queryParameters.get(value))) {
-                    throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                            .entity(String.format("Parameter %s missing", String.join(",", requiredParametersValueMissing)))
-                            .build());
+                    requiredParametersValueMissing.add(value);
                 }
-
             }
+
+            if (!requiredParametersValueMissing.isEmpty())
+                throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity(String.format("Parameters are missing: %s", String.join(",", requiredParametersValueMissing)))
+                        .build());
 
         }
 

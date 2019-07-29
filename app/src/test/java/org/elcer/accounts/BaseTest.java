@@ -18,7 +18,10 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.jvnet.hk2.internal.DynamicConfigurationImpl;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -33,15 +36,17 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @Slf4j
+@ExtendWith(MockitoExtension.class)
 public abstract class BaseTest extends JerseyTest {
 
     private ServiceLocator locator;
 
-    private final Context context = mock(Context.class);
+
+    @Mock
+    private Context context;
 
     private static final EntityManagerFactory entityManagerFactory =
             Persistence.createEntityManagerFactory(AppConfig.PU_NAME);

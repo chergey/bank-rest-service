@@ -33,7 +33,6 @@ public class RunnerUtils {
     @SuppressWarnings("UnusedReturnValue")
     @SneakyThrows
     public static Server startServer(int port) {
-        //  ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         Server server = new Server(port);
 
         EntityManagerFactory accounts = Persistence.createEntityManagerFactory(AppConfig.PU_NAME);

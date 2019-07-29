@@ -1,7 +1,6 @@
 package org.elcer.accounts.app;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -16,7 +15,7 @@ public class LinkDeserializer extends StdDeserializer<Link> {
     }
 
     @Override
-    public Link deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Link deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode node = p.getCodec().readTree(p);
         String href = node.get("href").asText();
         String rel = node.get("rel").asText();
