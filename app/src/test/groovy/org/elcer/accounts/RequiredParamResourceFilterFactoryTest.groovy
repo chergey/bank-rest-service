@@ -30,16 +30,15 @@ class RequiredParamResourceFilterFactoryTest {
     void normalMethod(@Required @QueryParam("param") String param) {
     }
 
+    @Mock
+    ResourceInfo resourceInfo
 
     @Mock
-    private FeatureContext featureContext
+    FeatureContext featureContext
 
     @Test
     void "test only one parameter annotation is allowed"() {
         def factory = new RequiredParamResourceFilterFactory()
-
-        def resourceInfo = Mockito.mock(ResourceInfo)
-        //   def featureContext= Mockito.mock(FeatureContext)
 
         def method = getClass().getDeclaredMethod("methodWithRequiredAnnoAndTwoParamAnnotations", String)
         Mockito.when(resourceInfo.getResourceMethod()).thenReturn(method)
@@ -52,15 +51,12 @@ class RequiredParamResourceFilterFactoryTest {
 
     @Test
     void "test no parameter annotation is defined"() {
+        def factory = new RequiredParamResourceFilterFactory()
+
         def method = getClass().getDeclaredMethod("methodWithRequiredAnnoAndNoParamAnnotations", String)
-        def filter = new RequiredParamResourceFilterFactory.RequiredParamFilter(method)
+        Mockito.when(resourceInfo.getResourceMethod()).thenReturn(method)
 
-        def containerRequest = Mockito.mock(ContainerRequestContext)
-        def uriInfo = Mockito.mock(UriInfo)
-        Mockito.when(containerRequest.getUriInfo()).thenReturn(uriInfo)
-        Mockito.when(uriInfo.getQueryParameters()).thenReturn(ImmutableMultivaluedMap.empty())
-
-        def thrown = Assertions.assertThrows(RuntimeException, () -> filter.filter(containerRequest))
+        def thrown = Assertions.assertThrows(RuntimeException, () -> factory.configure(resourceInfo, featureContext))
         Assertions.assertTrue(thrown.getMessage().contains("No @PathParam or @QueryParam defined!"))
 
     }

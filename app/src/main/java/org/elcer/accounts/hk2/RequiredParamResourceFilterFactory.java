@@ -37,16 +37,20 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
                     if (pathParam != null && queryParam != null) {
                         throw new RuntimeException("Both PathParam and QueryParam are defined. Choose only one!");
                     }
+
+                    if (pathParam == null && queryParam == null) {
+                        throw new RuntimeException("No @PathParam or @QueryParam defined!");
+                    }
                 })
                 .findAny()
                 .ifPresent(p -> context.register(new RequiredParamFilter(resourceMethod)));
     }
 
-    private static class RequiredParamFilter implements ContainerRequestFilter {
+    public static class RequiredParamFilter implements ContainerRequestFilter {
 
         private final Method resourceMethod;
 
-        private RequiredParamFilter(Method resourceMethod) {
+        public RequiredParamFilter(Method resourceMethod) {
             this.resourceMethod = resourceMethod;
         }
 
@@ -65,14 +69,13 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
                     value = pathParam.value();
                 }
 
-                QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
-                if (queryParam != null) {
-                    value = queryParam.value();
+                if (value == null) {
+                    QueryParam queryParam = parameter.getAnnotation(QueryParam.class);
+                    if (queryParam != null) {
+                        value = queryParam.value();
+                    }
                 }
 
-                if (value == null) {
-                    throw new RuntimeException("No @PathParam or @QueryParam defined!");
-                }
                 if (CollectionUtils.isEmpty(queryParameters.get(value))) {
                     requiredParametersValueMissing.add(value);
                 }
