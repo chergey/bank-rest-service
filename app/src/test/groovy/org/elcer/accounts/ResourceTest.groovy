@@ -84,7 +84,7 @@ class ResourceTest extends BaseTest {
 
         assertHttpStatus(Response.Status.CREATED, response)
 
-        URI link = createLink(response, 1 as String)
+        URI link = createLink(response, createdAccount.getId() as String)
         Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
         Assertions.assertEquals("self", response.getLinks().first().rel)
         Assertions.assertEquals(link, response.getLinks().first().uri, "Self link uri should point to account uri")
