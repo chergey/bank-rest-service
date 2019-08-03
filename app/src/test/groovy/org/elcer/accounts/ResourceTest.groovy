@@ -1,9 +1,12 @@
 package org.elcer.accounts
 
 import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.reflect.FieldUtils
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.model.PagedResponse
 import org.elcer.accounts.model.TransferResponse
+import org.glassfish.jersey.client.ClientResponse
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,19 +20,21 @@ class ResourceTest extends BaseTest {
 
     @BeforeEach
     void clean() {
-        for (Account account : getAccountService().getAllAccounts(0, Integer.MAX_VALUE)) {
+        for (def account : getAccountService().getAllAccounts(0, Integer.MAX_VALUE)) {
             getAccountService().deleteAccount(account)
         }
     }
 
     @Test
-    void testDeleteAccount() {
+    void "delete account with met requirements returns OK"() {
         getAccountService().createAccount(new Account(1L, "Denis", 40000 as BigDecimal))
 
-        Response response = target("api/accounts")
+        def response = target("api/accounts")
                 .path(Integer.toString(1))
                 .request()
                 .delete()
+
+        Assertions.assertTrue(response.getLinks().isEmpty(), "Should not have links")
 
         assertHttpStatus(Response.Status.OK, response)
 
@@ -37,11 +42,11 @@ class ResourceTest extends BaseTest {
 
 
     @Test
-    void testReplaceAccount() {
+    void "replace account with met requirements returns OK"() {
         getAccountService().createAccount(new Account(1L, "Denis", 40000 as BigDecimal))
 
         Account account = new Account("Daniel", 10000 as BigDecimal)
-        Response response = target("api/accounts")
+        def response = target("api/accounts")
                 .path(Integer.toString(1))
                 .request()
                 .put(Entity.json(account))
@@ -50,22 +55,28 @@ class ResourceTest extends BaseTest {
         assertHttpStatus(Response.Status.CREATED, response)
         Assertions.assertNotNull(replacedAccount)
 
-        Assertions.assertEquals(replacedAccount.getBalance(), 10000 as BigDecimal,
+        Assertions.assertEquals(10000 as BigDecimal, replacedAccount.getBalance(),
                 "Account balance should be 10000")
 
         Assertions.assertEquals("Daniel", replacedAccount.getName(),
                 "Account name should be Daniel")
 
+
+        URI link = createLink(response, 1 as String)
+        Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
+        Assertions.assertEquals("self", response.getLinks().first().rel, "Should have self link")
+        Assertions.assertEquals(link, response.getLinks().first().uri, "Self link uri should point to account uri")
+
     }
 
 
     @Test
-    void testCreateAccount() {
+    void "create account with met requirements returns OK"() {
         Account account = new Account("Daniel", 10000 as BigDecimal);
 
-        Response response = target("api/accounts")
+        def response = target("api/accounts")
                 .request()
-                .post(Entity.json(account));
+                .post(Entity.json(account))
 
         Account createdAccount = response.readEntity(Account.class)
         Assertions.assertNotNull(createdAccount, "Account can't be null")
@@ -73,10 +84,16 @@ class ResourceTest extends BaseTest {
 
         assertHttpStatus(Response.Status.CREATED, response)
 
+        URI link = createLink(response, 1 as String)
+        Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
+        Assertions.assertEquals("self", response.getLinks().first().rel)
+        Assertions.assertEquals(link, response.getLinks().first().uri, "Self link uri should point to account uri")
+
     }
 
+
     @Test
-    void testAccountTransferSuccessfully() {
+    void "transfer with with met requirements returns OK"() {
         def accountService = getAccountService()
         accountService.createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
         accountService.createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
@@ -96,12 +113,11 @@ class ResourceTest extends BaseTest {
     }
 
     @Test
-    void testAccountTransfer400() {
+    void "transfer without body returns 400"() {
         def accountService = getAccountService()
 
         accountService.createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
         accountService.createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
-
 
         Response response = target("api/accounts/transfer")
                 .queryParam("from")
@@ -110,13 +126,14 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.json(null))
 
+
         assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
 
     }
 
     @Test
-    void testAccountTransferNotEnoughFunds() {
+    void "transfer not enough funds returns CONFLICT"() {
         def accountService = getAccountService()
         accountService.createAccount(new Account(1L, "Daniel", 1000 as BigDecimal))
         accountService.createAccount(new Account(2L, "Mark", 1000 as BigDecimal))
@@ -128,7 +145,7 @@ class ResourceTest extends BaseTest {
                 .request()
                 .post(Entity.entity(null, MediaType.APPLICATION_JSON_TYPE))
 
-        assertHttpStatus(Response.Status.ACCEPTED, response)
+        assertHttpStatus(Response.Status.CONFLICT, response)
 
         Assertions.assertEquals(TransferResponse.notEnoughFunds().getCode(),
                 response.readEntity(TransferResponse.class).getCode())
@@ -136,7 +153,7 @@ class ResourceTest extends BaseTest {
     }
 
     @Test
-    void testAccountTransferSame() {
+    void "transfer to the same account returns 400"() {
         getAccountService().createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
         getAccountService().createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
 
@@ -156,7 +173,7 @@ class ResourceTest extends BaseTest {
 
 
     @Test
-    void testAccountNegativeAmount() {
+    void "transfer negative amount returns 400"() {
         getAccountService().createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
         getAccountService().createAccount(new Account(2L, "Mark", 10000 as BigDecimal))
 
@@ -177,7 +194,7 @@ class ResourceTest extends BaseTest {
 
 
     @Test
-    void testGetAccountById() {
+    void "get account by id returns OK"() {
         getAccountService().createAccount(new Account(1L, "Daniel", 10000 as BigDecimal))
 
         Response response = target("api/accounts")
@@ -188,13 +205,18 @@ class ResourceTest extends BaseTest {
         Account account = response.readEntity(Account.class)
 
         Assertions.assertNotNull(account, "No account in response")
-        Assertions.assertEquals(Long.valueOf(1), account.getId())
+        Assertions.assertEquals(1L, account.getId())
+
+
+        Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
+        Assertions.assertTrue(response.hasLink("self"), "Should have self link")
+        Assertions.assertTrue(response.hasLink("accounts"), "Should have all accounts link")
 
 
     }
 
     @Test
-    void testGetAccountsByName() {
+    void "get accounts by name returns OK"() {
         String accountName = "Daniel"
         getAccountService().createAccount(new Account(1L, accountName, 10000 as BigDecimal))
 
@@ -213,12 +235,18 @@ class ResourceTest extends BaseTest {
         Assertions.assertTrue(CollectionUtils.isNotEmpty(accountResponse.getContent()),
                 "No accounts in response")
 
-        Assertions.assertEquals(accountName, accountResponse.getContent().get(0).getName())
+        Assertions.assertEquals(accountName, accountResponse.getContent().first().getName())
+
+        def links = accountResponse.getLinks()*.rel
+        Assertions.assertNotNull(links.find(s -> s == "self"), "Should have self page link")
+        Assertions.assertNotNull(links.find(s -> s == "next"), "Should have next page link")
+        Assertions.assertNotNull(links.find(s -> s == "last"), "Should have last page link" )
+        Assertions.assertNull(links.find(s -> s == "prev"), "Should not have prev page link")
     }
 
 
     @Test
-    void testGet10Accounts() {
+    void "get 10 accounts returns OK"() {
         for (int i = 0; i < 10; i++)
             getAccountService().createAccount(new Account(i + 1L, Integer.toString(i), 10000 as BigDecimal))
 
@@ -227,6 +255,9 @@ class ResourceTest extends BaseTest {
                 .queryParam("size", 10)
                 .request()
                 .get()
+
+
+        Assertions.assertTrue(response.getLinks().isEmpty(), "Should not have links")
 
         assertHttpStatus(Response.Status.OK, response);
 
@@ -238,10 +269,16 @@ class ResourceTest extends BaseTest {
 
         Assertions.assertEquals(10, accountResponse.getContent().size())
 
+        def links = accountResponse.getLinks()*.rel
+        Assertions.assertNotNull(links.find(s -> s == "self"), "Should have self page link")
+        Assertions.assertNotNull(links.find(s -> s == "next"), "Should have next page link")
+        Assertions.assertNotNull(links.find(s -> s == "last"), "Should have last page link" )
+        Assertions.assertNull(links.find(s -> s == "prev"), "Should not have prev page link")
+
     }
 
     @Test
-    void testNoSuchAccount() {
+    void "get account that doesn't exist returns 404"() {
         Response response = target("api/accounts")
                 .path(Integer.toString(1))
                 .request()
@@ -256,6 +293,19 @@ class ResourceTest extends BaseTest {
 
 
     private static void assertHttpStatus(Response.Status expectedStatus, Response body) {
-        Assertions.assertEquals(expectedStatus.getStatusCode(), body.getStatus())
+        Assertions.assertEquals(expectedStatus.getStatusCode(), body.getStatus(), "HTTP status doesn't match")
+    }
+
+    private static URI createLink(Response response, String... values) {
+        def context = FieldUtils.readDeclaredField(response, "context", true)
+        def uri = (context as ClientResponse)?.getResolvedRequestUri()
+
+        Assertions.assertNotNull(uri, "Request uri can't be null")
+        def builder = new JerseyUriBuilder().uri(uri)
+        for (String value : values) {
+            builder.path(value)
+        }
+
+        return builder.build()
     }
 }

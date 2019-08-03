@@ -77,7 +77,7 @@ public abstract class BaseTest extends JerseyTest {
 
     @Override
     protected void configureClient(ClientConfig config) {
-        JacksonJaxbJsonProvider jacksonProvider = new JacksonJaxbJsonProvider();
+        var jacksonProvider = new JacksonJaxbJsonProvider();
         jacksonProvider.setMapper(ObjectMapperProvider.OBJECT_MAPPER);
         config.register(jacksonProvider);
     }
@@ -86,10 +86,10 @@ public abstract class BaseTest extends JerseyTest {
     protected Application configure() {
         rectifyAppClassPath();
 
-        ResourceConfig appConfig = new ResourceConfig();
+        var appConfig = new ResourceConfig();
         appConfig.packages(LocatorUtils.PACKAGE_NAMES);
 
-        PersistenceUnitBinder persistenceUnitBinder = new PersistenceUnitBinder(new HttpServlet() {
+        var persistenceUnitBinder = new PersistenceUnitBinder(new HttpServlet() {
             @Override
             public String getInitParameter(String name) {
                 return "accounts";
@@ -124,7 +124,7 @@ public abstract class BaseTest extends JerseyTest {
         try {
             var ucp = FieldUtils.readDeclaredField(contextClassLoader, "ucp", true);
             URL[] urls = (URL[]) MethodUtils.invokeMethod(ucp, "getURLs");
-            List<String> paths = Arrays.stream(urls).map(URL::toString)
+            var paths = Arrays.stream(urls).map(URL::toString)
                     .filter(s -> s.contains("/app/target/"))
                     .collect(Collectors.toList());
             if (paths.size() == 0) {

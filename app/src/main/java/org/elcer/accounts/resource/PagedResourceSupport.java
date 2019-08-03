@@ -33,7 +33,9 @@ class PagedResourceSupport {
                 .queryParam(AppConfig.SIZE_PARAM_NAME, AppConfig.DEFAULT_PAGESIZE);
 
         Link.Builder linkBuilder = Link.fromUriBuilder(uriBuilder);
-        return linkBuilder.rel("accounts").build();
+        return linkBuilder.rel("accounts")
+                .title("All accounts")
+                .build();
     }
 
     List<Link> createLinks(int page, int size, long total) {
@@ -41,25 +43,25 @@ class PagedResourceSupport {
 
         UriBuilder uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, page)
                 .queryParam(AppConfig.SIZE_PARAM_NAME, size);
-        links.add(Link.fromUriBuilder(uriBuilder).rel("self").build());
+        links.add(Link.fromUriBuilder(uriBuilder).rel("self").title("This page").build());
 
         int requestedElements = (size + 1) * page;
 
         if (requestedElements < total) {
             uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, page + 1)
                     .queryParam(AppConfig.SIZE_PARAM_NAME, size);
-            links.add(Link.fromUriBuilder(uriBuilder).rel("next").build());
+            links.add(Link.fromUriBuilder(uriBuilder).rel("next").title("Next page").build());
         }
 
         uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, total / size)
                 .queryParam(AppConfig.SIZE_PARAM_NAME, size);
-        links.add(Link.fromUriBuilder(uriBuilder).rel("last").build());
+        links.add(Link.fromUriBuilder(uriBuilder).rel("last").title("Last page").build());
 
 
         if (page > 1) {
             uriBuilder = startBuilder.queryParam(AppConfig.PAGE_PARAM_NAME, page - 1)
                     .queryParam(AppConfig.SIZE_PARAM_NAME, size);
-            links.add(Link.fromUriBuilder(uriBuilder).rel("prev").build());
+            links.add(Link.fromUriBuilder(uriBuilder).rel("prev").title("Previous page").build());
         }
         return links;
     }

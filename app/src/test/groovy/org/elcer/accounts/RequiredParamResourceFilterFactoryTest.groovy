@@ -21,12 +21,15 @@ import javax.ws.rs.core.UriInfo
 @ExtendWith(MockitoExtension)
 class RequiredParamResourceFilterFactoryTest {
 
+    @SuppressWarnings("unused")
     void methodWithRequiredAnnoAndTwoParamAnnotations(@Required @PathParam("param") @QueryParam("param") String param) {
     }
 
+    @SuppressWarnings("unused")
     void methodWithRequiredAnnoAndNoParamAnnotations(@Required String param) {
     }
 
+    @SuppressWarnings("unused")
     void normalMethod(@Required @QueryParam("param") String param) {
     }
 

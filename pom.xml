@@ -51,6 +51,7 @@
             --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=java.naming
             --add-exports=bank.rest.service.jersey/org.elcer.accounts.api=ALL-UNNAMED
             --add-opens=java.base/jdk.internal.loader=org.apache.commons.lang3
+            --add-opens=jersey.server/org.glassfish.jersey.client=bank.rest.service.jersey
         </argLine>
     </properties>
 

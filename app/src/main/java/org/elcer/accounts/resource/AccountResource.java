@@ -34,12 +34,11 @@ public class AccountResource {
     @Path("/accounts")
     @RequiresPermissions("users:create")
     public Response createAccount(Account account) {
-        var builder = uriInfo.getAbsolutePathBuilder();
         Account createdAccount = accountService.createAccount(account);
-        builder.path(Long.toString(createdAccount.getId()));
 
-        Link self = Link.fromUriBuilder(uriInfo.getAbsolutePathBuilder())
-                .rel("self").build();
+        var builder = uriInfo.getAbsolutePathBuilder();
+        builder.path(Long.toString(createdAccount.getId()));
+        Link self = Link.fromUriBuilder(builder).rel("self").build();
 
         return Response.created(builder.build())
                 .entity(createdAccount)
@@ -51,19 +50,24 @@ public class AccountResource {
     @Path("/accounts/{id:\\d+}")
     @RequiresPermissions("users:update")
     public Response replaceAccount(@PathParam("id") long id, Account account) {
+        var replacedAccount = accountService.replaceAccount(id, account);
+
         var builder = uriInfo.getAbsolutePathBuilder();
-        Account replacedAccount = accountService.replaceAccount(id, account);
         builder.path(Long.toString(replacedAccount.getId()));
+        Link self = Link.fromUriBuilder(builder).rel("self").build();
         return Response.created(builder.build())
-                .entity(replacedAccount).build();
+                .entity(replacedAccount)
+                .links(self)
+                .build();
     }
 
     @DELETE
     @Path("/accounts/{id:\\d+}")
     @RequiresPermissions("users:update")
     public Response deleteAccount(@PathParam("id") long id) {
-        var builder = uriInfo.getAbsolutePathBuilder();
         accountService.deleteAccount(id);
+
+        var builder = uriInfo.getAbsolutePathBuilder();
         return Response.ok(builder.build()).build();
     }
 
@@ -78,8 +82,8 @@ public class AccountResource {
         var pagedAccounts = new PagedResponse<Account>();
 
         if (total > 0) {
-            UriBuilder startBuilder = uriInfo.getRequestUriBuilder().path(name);
-            PagedResourceSupport pagedResourceSupport = new PagedResourceSupport(startBuilder);
+            var startBuilder = uriInfo.getRequestUriBuilder().path(name);
+            var pagedResourceSupport = new PagedResourceSupport(startBuilder);
             pagedAccounts.setLinks(pagedResourceSupport.createLinks(page, size, total));
         }
         pagedAccounts.setContent(accounts);
@@ -97,8 +101,8 @@ public class AccountResource {
         var pagedAccounts = new PagedResponse<Account>();
 
         if (total > 0) {
-            UriBuilder startBuilder = uriInfo.getRequestUriBuilder();
-            PagedResourceSupport pagedResourceSupport = new PagedResourceSupport(startBuilder);
+            var startBuilder = uriInfo.getRequestUriBuilder();
+            var pagedResourceSupport = new PagedResourceSupport(startBuilder);
             pagedAccounts.setLinks(pagedResourceSupport.createLinks(page, size, total));
         }
         pagedAccounts.setContent(accounts);
@@ -109,13 +113,13 @@ public class AccountResource {
     @GET
     @Path("/accounts/{id:\\d+}")
     public Response getAccount(@PathParam("id") Long id) {
-        UriBuilder startBuilder = uriInfo.getAbsolutePathBuilder();
+        var account = accountService.getAccount(id);
+
+        var startBuilder = uriInfo.getAbsolutePathBuilder();
+        var pagedResourceSupport = new PagedResourceSupport(startBuilder);
         Link self = Link.fromUriBuilder(startBuilder)
                 .rel("self").build();
 
-        PagedResourceSupport pagedResourceSupport = new PagedResourceSupport(startBuilder);
-
-        var account = accountService.getAccount(id);
         return Response.ok(account)
                 .links(self, pagedResourceSupport.getAllAccountsLink())
                 .build();
