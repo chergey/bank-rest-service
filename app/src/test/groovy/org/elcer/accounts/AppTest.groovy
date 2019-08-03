@@ -17,7 +17,7 @@ class AppTest extends BaseTest {
     private static Logger log = LoggerFactory.getLogger(AppTest.class)
 
     @RepeatedTest(1)
-    void testConcurrencyAndDeadlocks() {
+    void "run concurrency and deadlock test"() {
         def accountService = getAccountService()
 
         def first = accountService.createAccount(new Account("Mike", 622600 as BigDecimal))

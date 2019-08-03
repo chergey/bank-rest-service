@@ -107,7 +107,8 @@ class ResourceTest extends BaseTest {
 
         assertHttpStatus(Response.Status.OK, response)
 
-        Assertions.assertEquals(TransferResponse.success(), response.readEntity(TransferResponse.class))
+        Assertions.assertEquals(TransferResponse.success(),
+                response.readEntity(TransferResponse.class), "Should be success code")
 
 
     }
@@ -148,7 +149,8 @@ class ResourceTest extends BaseTest {
         assertHttpStatus(Response.Status.CONFLICT, response)
 
         Assertions.assertEquals(TransferResponse.notEnoughFunds().getCode(),
-                response.readEntity(TransferResponse.class).getCode())
+                response.readEntity(TransferResponse.class).getCode(),
+                "Response should have notEnoughFunds code")
 
     }
 
@@ -168,7 +170,8 @@ class ResourceTest extends BaseTest {
         assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
         Assertions.assertEquals(TransferResponse.debitAccountIsCreditAccount().getCode(),
-                response.readEntity(TransferResponse.class).getCode())
+                response.readEntity(TransferResponse.class).getCode(),
+                "Response should have debitAccountIsCreditAccount code")
     }
 
 
@@ -187,7 +190,7 @@ class ResourceTest extends BaseTest {
         assertHttpStatus(Response.Status.BAD_REQUEST, response)
 
         Assertions.assertEquals(TransferResponse.negativeAmount().getCode(),
-                response.readEntity(TransferResponse.class).getCode())
+                response.readEntity(TransferResponse.class).getCode(), "Response should have negativeAmount code")
 
 
     }
@@ -287,13 +290,15 @@ class ResourceTest extends BaseTest {
         assertHttpStatus(Response.Status.NOT_FOUND, response)
 
         Assertions.assertEquals(TransferResponse.noSuchAccount().getCode(),
-                response.readEntity(TransferResponse.class).getCode())
+                response.readEntity(TransferResponse.class).getCode(),
+        "Response should have noSuchAccount code")
 
     }
 
 
     private static void assertHttpStatus(Response.Status expectedStatus, Response body) {
-        Assertions.assertEquals(expectedStatus.getStatusCode(), body.getStatus(), "HTTP status doesn't match")
+        Assertions.assertEquals(expectedStatus.getStatusCode(), body.getStatus(),
+                "HTTP status should be ${expectedStatus.getStatusCode()}")
     }
 
     private static URI createLink(Response response, String... values) {
