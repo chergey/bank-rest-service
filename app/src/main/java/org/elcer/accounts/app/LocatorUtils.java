@@ -70,19 +70,20 @@ public class LocatorUtils {
         for (var annotatedClass : annotatedClasses) {
             overridingBeans.stream()
                     .filter(overriding -> annotatedClass.isAssignableFrom(overriding.getClass()))
-                    .findAny().ifPresentOrElse(bean -> bindings.put(annotatedClass, bean),
-                    () -> {
-                        if (isMarkedAsNotUsedInTest(annotatedClass)) {
-                            if (annotatedClass.isInterface()) {
-                                var annotation = annotatedClass.getAnnotation(Component.class);
-                                Class<?> impl = annotation.value();
-                                if (impl == Class.class)
-                                    throw new RuntimeException("Component implementation is not defined!");
+                    .findAny()
+                    .ifPresentOrElse(bean -> bindings.put(annotatedClass, bean),
+                            () -> {
+                                if (isMarkedAsNotUsedInTest(annotatedClass)) {
+                                    if (annotatedClass.isInterface()) {
+                                        var annotation = annotatedClass.getAnnotation(Component.class);
+                                        Class<?> impl = annotation.value();
+                                        if (impl == Class.class)
+                                            throw new RuntimeException("Component implementation is not defined!");
 
-                                bindings.put(annotatedClass, impl);
-                            }
-                        }
-                    });
+                                        bindings.put(annotatedClass, impl);
+                                    }
+                                }
+                            });
         }
 
         for (var annotatedClass : annotatedClasses) {
