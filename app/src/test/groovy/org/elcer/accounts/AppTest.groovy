@@ -22,12 +22,12 @@ import static org.mockito.Mockito.when
 
 class AppTest extends BaseTest {
 
-    private static Logger log = LoggerFactory.getLogger(AppTest.class)
+    private static Logger log = LoggerFactory.getLogger(AppTest)
 
     private static final int TIMES = 14000
 
-    private static final def entityManagerFactory = Persistence.createEntityManagerFactory(AppConfig.PU_NAME)
-
+    private static final def entityManagerFactory =
+            Persistence.createEntityManagerFactory(AppConfig.PU_NAME)
 
     @Mock
     private Context context

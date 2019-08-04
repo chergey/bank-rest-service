@@ -10,8 +10,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
-;
-
 /**
  * Wrapper over entity transaction to safely dispose it
  * Using ServerSession#acquireClientConnection to immediately start a transaction

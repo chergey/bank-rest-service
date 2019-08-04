@@ -56,6 +56,7 @@ public class LocatorUtils {
             log.error("Error while scanning packages", e);
         }
 
+        //add concrete classes
         Class[] classes = Arrays.stream(annotatedClasses)
                 .filter(c -> !c.isInterface() && isMarkedAsNotUsedInTest(c) &&
                         overridingBeans.stream()
@@ -63,7 +64,6 @@ public class LocatorUtils {
                                 .noneMatch(c::isAssignableFrom)
                 )
                 .toArray(Class[]::new);
-
         ServiceLocatorUtilities.addClasses(serviceLocator, classes);
 
         var bindings = new HashMap<Class<?>, Object>();
@@ -73,24 +73,20 @@ public class LocatorUtils {
                     .findAny()
                     .ifPresentOrElse(bean -> bindings.put(annotatedClass, bean),
                             () -> {
-                                if (isMarkedAsNotUsedInTest(annotatedClass)) {
-                                    if (annotatedClass.isInterface()) {
-                                        var annotation = annotatedClass.getAnnotation(Component.class);
-                                        Class<?> impl = annotation.value();
-                                        if (impl == Class.class)
-                                            throw new RuntimeException("Component implementation is not defined!");
+                                if (isMarkedAsNotUsedInTest(annotatedClass) && annotatedClass.isInterface()) {
+                                    var annotation = annotatedClass.getAnnotation(Component.class);
+                                    Class<?> impl = annotation.value();
+                                    if (impl == Class.class)
+                                        throw new ApplicationStartupException("Component implementation is not defined!");
 
-                                        bindings.put(annotatedClass, impl);
-                                    }
+                                    bindings.put(annotatedClass, impl);
                                 }
                             });
         }
 
         for (var annotatedClass : annotatedClasses) {
-            if (isMarkedAsNotUsedInTest(annotatedClass)) {
-                if (annotatedClass.isAnnotationPresent(Eager.class)) {
-                    serviceLocator.getService(annotatedClass);
-                }
+            if (isMarkedAsNotUsedInTest(annotatedClass) && annotatedClass.isAnnotationPresent(Eager.class)) {
+                serviceLocator.getService(annotatedClass);
             }
         }
         return new AbstractBinder() {

@@ -1,5 +1,6 @@
 package org.elcer.accounts
 
+import org.elcer.accounts.app.ApplicationStartupException
 import org.elcer.accounts.hk2.RequiredParamResourceFilterFactory
 import org.elcer.accounts.hk2.annotations.Required
 import org.glassfish.jersey.internal.util.collection.ImmutableMultivaluedMap
@@ -46,7 +47,7 @@ class RequiredParamResourceFilterFactoryTest {
         def method = getClass().getDeclaredMethod("methodWithRequiredAnnoAndTwoParamAnnotations", String)
         Mockito.when(resourceInfo.getResourceMethod()).thenReturn(method)
 
-        def thrown = Assertions.assertThrows(RuntimeException, () -> factory.configure(resourceInfo, featureContext))
+        def thrown = Assertions.assertThrows(ApplicationStartupException, () -> factory.configure(resourceInfo, featureContext))
         Assertions.assertTrue(thrown.getMessage().contains("Both PathParam and QueryParam are defined. Choose only one!"))
 
     }
@@ -59,7 +60,7 @@ class RequiredParamResourceFilterFactoryTest {
         def method = getClass().getDeclaredMethod("methodWithRequiredAnnoAndNoParamAnnotations", String)
         Mockito.when(resourceInfo.getResourceMethod()).thenReturn(method)
 
-        def thrown = Assertions.assertThrows(RuntimeException, () -> factory.configure(resourceInfo, featureContext))
+        def thrown = Assertions.assertThrows(ApplicationStartupException, () -> factory.configure(resourceInfo, featureContext))
         Assertions.assertTrue(thrown.getMessage().contains("No @PathParam or @QueryParam defined!"))
 
     }

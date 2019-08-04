@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.elcer.accounts.app.AppConfig;
+import org.elcer.accounts.app.ApplicationStartupException;
 import org.elcer.accounts.app.LocatorUtils;
 import org.elcer.accounts.app.ObjectMapperProvider;
 import org.elcer.accounts.services.AccountService;
@@ -116,7 +117,7 @@ public abstract class BaseTest extends JerseyTest {
                     .filter(s -> s.contains("/app/target/"))
                     .collect(Collectors.toList());
             if (paths.size() == 0) {
-                throw new RuntimeException("Application build dir is not found");
+                throw new ApplicationStartupException("Application build dir is not found");
             }
 
             if (!paths.contains("/classes")) {
@@ -126,7 +127,7 @@ public abstract class BaseTest extends JerseyTest {
                 MethodUtils.invokeMethod(ucp, "addURL", new URL("file:/" + appClassPath));
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | MalformedURLException e) {
-            throw new RuntimeException("Could not set up test classpath", e);
+            throw new ApplicationStartupException("Could not set up test classpath", e);
         }
     }
 
@@ -140,7 +141,7 @@ public abstract class BaseTest extends JerseyTest {
             locator = (ServiceLocator) FieldUtils.readDeclaredField(dynamicConfiguration, "locator", true);
 
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Could not get service locator", e);
+            throw new ApplicationStartupException("Could not get service locator", e);
         }
         return locator;
     }

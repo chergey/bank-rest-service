@@ -1,6 +1,7 @@
 package org.elcer.accounts.hk2;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.elcer.accounts.app.ApplicationStartupException;
 import org.elcer.accounts.hk2.annotations.Required;
 
 import javax.ws.rs.PathParam;
@@ -35,11 +36,11 @@ public class RequiredParamResourceFilterFactory implements DynamicFeature {
                     PathParam pathParam = p.getAnnotation(PathParam.class);
                     QueryParam queryParam = p.getAnnotation(QueryParam.class);
                     if (pathParam != null && queryParam != null) {
-                        throw new RuntimeException("Both PathParam and QueryParam are defined. Choose only one!");
+                        throw new ApplicationStartupException("Both PathParam and QueryParam are defined. Choose only one!");
                     }
 
                     if (pathParam == null && queryParam == null) {
-                        throw new RuntimeException("No @PathParam or @QueryParam defined!");
+                        throw new ApplicationStartupException("No @PathParam or @QueryParam defined!");
                     }
                 })
                 .findAny()
