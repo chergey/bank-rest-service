@@ -1,7 +1,10 @@
 package org.elcer.accounts.app;
 
 
+import io.vavr.control.Try;
 import lombok.experimental.UtilityClass;
+
+import java.util.List;
 
 @UtilityClass
 public class TestUtils {
@@ -9,16 +12,16 @@ public class TestUtils {
     public static final boolean TEST = isTest();
 
     private static boolean isTest() {
-        try {
-            Class.forName("org.junit.Test");
-        } catch (ClassNotFoundException e) {
-            try {
-                Class.forName("org.junit.jupiter.api.Test");
-            } catch (ClassNotFoundException e2) {
-                return false;
-            }
-        }
-        return true;
+       return Try.sequence(List.of( Try.of(() -> {
+                   Class.forName("org.junit.Test");
+                   return true;
+               }),
+               Try.of(() -> {
+                   Class.forName("org.junit.jupiter.api.Test");
+                   return true;
+               })
+       )).flatMap(f-> f.toTry()).getOrElse(false);
+
     }
 
 }

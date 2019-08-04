@@ -2,19 +2,51 @@ package org.elcer.accounts
 
 import org.apache.commons.lang3.RandomUtils
 import org.elcer.accounts.api.ExecutorUtils
+import org.elcer.accounts.api.MockInitialContextFactory
+import org.elcer.accounts.app.AppConfig
 import org.elcer.accounts.exceptions.NotEnoughFundsException
 import org.elcer.accounts.model.Account
 import org.elcer.accounts.services.AccountService
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.RepeatedTest
+import org.mockito.Mock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.naming.Context
+import javax.naming.NamingException
+import javax.persistence.Persistence
+
+import static org.mockito.Mockito.when
+
 class AppTest extends BaseTest {
+
+    private static Logger log = LoggerFactory.getLogger(AppTest.class)
 
     private static final int TIMES = 14000
 
-    private static Logger log = LoggerFactory.getLogger(AppTest.class)
+    private static final def entityManagerFactory = Persistence.createEntityManagerFactory(AppConfig.PU_NAME)
+
+
+    @Mock
+    private Context context
+
+
+    @BeforeEach
+    @Override
+    void setUp() throws Exception {
+        setupJndi()
+        super.setUp()
+    }
+
+
+    private void setupJndi() throws NamingException {
+        when(context.lookup("java:comp/env/" + AppConfig.PU_NAME)).thenReturn(entityManagerFactory)
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName())
+        MockInitialContextFactory.setGlobalContext(context)
+    }
+
 
     @RepeatedTest(1)
     void "run concurrency and deadlock test"() {
@@ -47,10 +79,10 @@ class AppTest extends BaseTest {
 
         );
 
-        def firstInTheEnd = accountService.getAccount(first.getId())
-        def secondInTheEnd = accountService.getAccount(second.getId())
-        def thirdInTheEnd = accountService.getAccount(third.getId())
-        def fourthInTheEnd = accountService.getAccount(fourth.getId())
+        def firstInTheEnd = accountService.findById(first.getId())
+        def secondInTheEnd = accountService.findById(second.getId())
+        def thirdInTheEnd = accountService.findById(third.getId())
+        def fourthInTheEnd = accountService.findById(fourth.getId())
 
         def endingTotal = firstInTheEnd.getBalance() + secondInTheEnd.getBalance() +
                 thirdInTheEnd.getBalance() +

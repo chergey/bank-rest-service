@@ -5,7 +5,7 @@ import org.elcer.accounts.cache.DefaultCacheSupport;
 import org.elcer.accounts.cache.HazelcastCacheCreator;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Eager;
-import org.elcer.accounts.hk2.annotations.NoTest;
+import org.elcer.accounts.hk2.annotations.NotUsedInTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,7 @@ import javax.annotation.PostConstruct;
 
 @Component
 @Eager
-@NoTest
+@NotUsedInTest
 public class AccountCacheSupport extends DefaultCacheSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(AccountCacheSupport.class);

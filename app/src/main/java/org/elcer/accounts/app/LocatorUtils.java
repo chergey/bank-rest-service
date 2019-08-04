@@ -7,7 +7,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Eager;
-import org.elcer.accounts.hk2.annotations.NoTest;
+import org.elcer.accounts.hk2.annotations.NotUsedInTest;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
 
 @Slf4j
 @UtilityClass
@@ -27,6 +28,7 @@ public class LocatorUtils {
     public static final String[] PACKAGE_NAMES = {
             APP_NAME + ".app",
             APP_NAME + ".db",
+            APP_NAME + ".cache",
             APP_NAME + ".services",
             APP_NAME + ".hk2",
             APP_NAME + ".resource",
@@ -34,7 +36,7 @@ public class LocatorUtils {
     };
 
 
-    public static AbstractBinder bindServices(ServiceLocator serviceLocator, boolean register) {
+    public static AbstractBinder bindServices(ServiceLocator serviceLocator, Set<Object> overridingBeans) {
         var ac = new AnnotatedClasses();
 
         @SuppressWarnings("unchecked")
@@ -55,36 +57,59 @@ public class LocatorUtils {
         }
 
         Class[] classes = Arrays.stream(annotatedClasses)
-                .filter(c -> !c.isInterface()).toArray(Class[]::new);
-        ServiceLocatorUtilities.addClasses(serviceLocator, classes);
-        var bindings = new HashMap<Class<?>, Class<?>>();
-        for (var annotatedClass : annotatedClasses) {
-            if (!TestUtils.TEST || annotatedClass.getAnnotation(NoTest.class) == null) {
-                if (annotatedClass.isInterface()) {
-                    var annotation = annotatedClass.getAnnotation(Component.class);
-                    Class<?> impl = annotation.value();
-                    if (impl == Class.class)
-                        throw new RuntimeException("Component implementation is not defined!");
+                .filter(c -> !c.isInterface() && isMarkedAsNotUsedInTest(c) &&
+                        overridingBeans.stream()
+                                .map(Object::getClass)
+                                .noneMatch(c::isAssignableFrom)
+                )
+                .toArray(Class[]::new);
 
-                    bindings.put(annotatedClass, impl);
-                }
-            }
+        ServiceLocatorUtilities.addClasses(serviceLocator, classes);
+
+        var bindings = new HashMap<Class<?>, Object>();
+        for (var annotatedClass : annotatedClasses) {
+            overridingBeans.stream()
+                    .filter(overriding -> annotatedClass.isAssignableFrom(overriding.getClass()))
+                    .findAny().ifPresentOrElse(bean -> bindings.put(annotatedClass, bean),
+                    () -> {
+                        if (isMarkedAsNotUsedInTest(annotatedClass)) {
+                            if (annotatedClass.isInterface()) {
+                                var annotation = annotatedClass.getAnnotation(Component.class);
+                                Class<?> impl = annotation.value();
+                                if (impl == Class.class)
+                                    throw new RuntimeException("Component implementation is not defined!");
+
+                                bindings.put(annotatedClass, impl);
+                            }
+                        }
+                    });
         }
 
-        if (register) {
-            for (var annotatedClass : annotatedClasses) {
-                if (!TestUtils.TEST || annotatedClass.getAnnotation(NoTest.class) == null) {
-                    if (annotatedClass.isAnnotationPresent(Eager.class)) {
-                        serviceLocator.getService(annotatedClass);
-                    }
+        for (var annotatedClass : annotatedClasses) {
+            if (isMarkedAsNotUsedInTest(annotatedClass)) {
+                if (annotatedClass.isAnnotationPresent(Eager.class)) {
+                    serviceLocator.getService(annotatedClass);
                 }
             }
         }
         return new AbstractBinder() {
             @Override
             protected void configure() {
-                bindings.forEach((intf, imp) -> bind(imp).to(intf));
+                bindings.forEach((iface, implOrClass) -> {
+                    if (implOrClass instanceof Class<?>)
+                        bind((Class<?>) implOrClass).to(iface);
+                    else {
+                        @SuppressWarnings("unchecked")
+                        Class<Object> objectClass = (Class<Object>) iface;
+                        bind(implOrClass).to(objectClass);
+                    }
+
+                });
             }
         };
+    }
+
+    private static boolean isMarkedAsNotUsedInTest(Class<?> clazz) {
+        return !TestUtils.TEST || clazz.getAnnotation(NotUsedInTest.class) == null;
     }
 }

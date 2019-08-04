@@ -9,6 +9,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 @Slf4j
 public class AppConfig extends ResourceConfig {
@@ -32,7 +33,7 @@ public class AppConfig extends ResourceConfig {
     }
 
     private void addServices(ServiceLocator serviceLocator) {
-        AbstractBinder binder = LocatorUtils.bindServices(serviceLocator, true);
+        AbstractBinder binder = LocatorUtils.bindServices(serviceLocator, Collections.emptySet());
         register(binder);
     }
 }

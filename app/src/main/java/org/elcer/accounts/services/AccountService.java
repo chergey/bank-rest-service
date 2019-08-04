@@ -1,6 +1,8 @@
 package org.elcer.accounts.services;
 
 
+import org.elcer.accounts.db.Transaction;
+import org.elcer.accounts.exceptions.AccountNotFoundException;
 import org.elcer.accounts.exceptions.NotEnoughFundsException;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.hk2.annotations.Raw;
@@ -31,8 +33,8 @@ public class AccountService {
 
         synchronizer.withLock(from, to, () -> {
             try (var tran = accountRepository.beginTran()) {
-                Account debitAccount = accountRepository.retrieveAccountById(tran, from),
-                        creditAccount = accountRepository.retrieveAccountById(tran, to);
+                var debitAccount = findById(tran, from);
+                var creditAccount = findById(tran, to);
 
                 if (debitAccount.getBalance().compareTo(amount) >= 0) {
                     debitAccount.subtractBalance(amount);
@@ -48,8 +50,23 @@ public class AccountService {
     }
 
 
-    public Account getAccount(long id) {
-        return accountRepository.retrieveAccountById(id);
+    public Account findById(long id) {
+        Account account = accountRepository.findById(id);
+        throwIfNull(account, id);
+        return account;
+    }
+
+
+    private Account findById(Transaction tran, long id) {
+        Account account = accountRepository.findById(tran, id);
+        throwIfNull(account, id);
+        return account;
+    }
+
+    private void throwIfNull(Account account, long id) {
+        if (account == null) {
+            throw new AccountNotFoundException(id);
+        }
     }
 
     public Account createAccount(Account account) {
@@ -58,17 +75,17 @@ public class AccountService {
 
 
     public void deleteAccount(long id) {
-        Account account = accountRepository.retrieveAccountById(id);
-        accountRepository.deleteAccount(account);
+        Account account = findById(id);
+        accountRepository.delete(account);
     }
 
     public void deleteAccount(Account account) {
-        accountRepository.deleteAccount(account);
+        accountRepository.delete(account);
     }
 
     public Account replaceAccount(long id, Account account) {
         try (var tran = accountRepository.beginTran()) {
-            Account oldAccount = accountRepository.retrieveAccountById(tran, id);
+            Account oldAccount = accountRepository.findById(tran, id);
             if (oldAccount != null) {
                 oldAccount.setBalance(account.getBalance());
                 oldAccount.setName(account.getName());
@@ -81,11 +98,11 @@ public class AccountService {
     }
 
     public List<Account> getAllAccounts(int page, int size) {
-        return accountRepository.getAllAccounts(page, size);
+        return accountRepository.findAll(page, size);
     }
 
     public List<Account> getAccounts(String name, int page, int size) {
-        return accountRepository.retrieveAccountsByName(name, page, size);
+        return accountRepository.findByName(name, page, size);
     }
 
     public long countAccounts(String name) {

@@ -37,7 +37,7 @@
         <hk2.version>2.5.0</hk2.version>
         <guava.version>28.0-jre</guava.version>
         <commons.lang.version>3.9</commons.lang.version>
-        <commons.collections.version>4.3</commons.collections.version>
+        <commons.collections.version>4.4</commons.collections.version>
 
 
         <junit.version>5.5.1-SNAPSHOT</junit.version>
@@ -282,7 +282,7 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-            <version>2.0.1</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -307,6 +307,12 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>1.0.0-alpha-3</version>
+        </dependency>
+
         <!-- commons -->
 
 
@@ -381,7 +387,7 @@
                                         <limit>
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.70</minimum>
+                                            <minimum>0.66</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

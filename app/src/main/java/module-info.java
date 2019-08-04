@@ -26,6 +26,7 @@ module bank.rest.service.jersey {
     requires cache;
     requires java.naming;
     requires java.logging;
+    requires io.vavr;
 
 
     exports org.elcer.accounts.app;
@@ -34,6 +35,7 @@ module bank.rest.service.jersey {
     exports org.elcer.accounts.model;
     opens org.elcer.accounts.services;
     opens org.elcer.accounts.hk2;
+    exports org.elcer.accounts.hk2.annotations;
 
     opens org.elcer.accounts.resource;
     opens org.elcer.accounts.model to org.eclipse.persistence.core;

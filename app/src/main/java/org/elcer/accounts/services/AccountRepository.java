@@ -3,7 +3,6 @@ package org.elcer.accounts.services;
 
 import org.elcer.accounts.db.CriteriaUtils;
 import org.elcer.accounts.db.Transaction;
-import org.elcer.accounts.exceptions.AccountNotFoundException;
 import org.elcer.accounts.hk2.annotations.Component;
 import org.elcer.accounts.model.Account;
 
@@ -49,16 +48,16 @@ public class AccountRepository {
     }
 
 
-    Transaction beginTran() {
+    public Transaction beginTran() {
         return new Transaction(efFactory);
     }
 
-    public List<Account> getAllAccounts(int page, int size) {
-        return wrapInTran(tran -> getAllAccounts(tran, page, size));
+    public List<Account> findAll(int page, int size) {
+        return wrapInTran(tran -> findAll(tran, page, size));
     }
 
 
-    List<Account> getAllAccounts(Transaction tran, int page, int size) {
+    List<Account> findAll(Transaction tran, int page, int size) {
         EntityManager entityManager = tran.getEm();
         var builder = entityManager.getCriteriaBuilder();
         var q = builder.createQuery(Account.class);
@@ -70,19 +69,19 @@ public class AccountRepository {
         return query.getResultList();
     }
 
-    public Account retrieveAccountById(long id) {
-        return wrapInTran(tran -> retrieveAccountById(tran, id));
+    public Account findById(long id) {
+        return wrapInTran(tran -> findById(tran, id));
     }
 
-    public List<Account> retrieveAccountsByName(String name, int page, int size) {
-        return wrapInTran(tran -> retrieveAccountByName(tran, name, page, size));
+    public List<Account> findByName(String name, int page, int size) {
+        return wrapInTran(tran -> findByName(tran, name, page, size));
     }
 
-    private List<Account> retrieveAccountByName(Transaction tran, String name, int page, int size) {
-        return _retrieveAccountsByName(tran.getEm(), name, page, size);
+    private List<Account> findByName(Transaction tran, String name, int page, int size) {
+        return findByName(tran.getEm(), name, page, size);
     }
 
-    private List<Account> _retrieveAccountsByName(EntityManager em, String name, int page, int size) {
+    private List<Account> findByName(EntityManager em, String name, int page, int size) {
         return CriteriaUtils.createQuery(em, Account.class,
                 (builder, root) -> builder.equal(root.get(NAME_FIELD), name))
                 .setFirstResult(page * size)
@@ -92,8 +91,8 @@ public class AccountRepository {
     }
 
 
-    public Account retrieveAccountById(Transaction tran, long id) {
-        return _retrieveAccountById(tran.getEm(), id);
+    public Account findById(Transaction tran, long id) {
+        return findById(tran.getEm(), id);
     }
 
 
@@ -106,12 +105,8 @@ public class AccountRepository {
     }
 
 
-    private Account _retrieveAccountById(EntityManager em, long id) {
-        Account account = em.find(Account.class, id);
-        if (account == null) {
-            throw new AccountNotFoundException(id);
-        }
-        return account;
+    private Account findById(EntityManager em, long id) {
+        return em.find(Account.class, id);
     }
 
 
@@ -119,9 +114,9 @@ public class AccountRepository {
      * Delete account by id
      * @param id account id
      */
-    public void deleteAccount(long id) {
+    public void deleteById(long id) {
         wrapInTran(tran -> {
-            deleteAccount(tran, id);
+            delete(tran, id);
             return null;
         });
     }
@@ -131,14 +126,14 @@ public class AccountRepository {
      * @param account account to delete
      */
 
-    public void deleteAccount(Account account) {
+    public void delete(Account account) {
         wrapInTran(tran -> {
-            deleteAccount(tran, account);
+            delete(tran, account);
             return null;
         });
     }
 
-    public void deleteAccount(Transaction tran, long id) {
+    public void delete(Transaction tran, long id) {
         EntityManager entityManager = tran.getEm();
         var builder = entityManager.getCriteriaBuilder();
         CriteriaDelete<Account> delete = builder.createCriteriaDelete(Account.class);
@@ -147,7 +142,7 @@ public class AccountRepository {
         entityManager.createQuery(delete).executeUpdate();
     }
 
-    public void deleteAccount(Transaction tran, Account account) {
+    public void delete(Transaction tran, Account account) {
         EntityManager entityManager = tran.getEm();
 
         Account attachedAccount = entityManager.contains(account) ? account : entityManager.merge(account);

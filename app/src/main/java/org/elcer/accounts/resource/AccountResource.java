@@ -113,7 +113,7 @@ public class AccountResource {
     @GET
     @Path("/accounts/{id:\\d+}")
     public Response getAccount(@PathParam("id") Long id) {
-        var account = accountService.getAccount(id);
+        var account = accountService.findById(id);
 
         var startBuilder = uriInfo.getAbsolutePathBuilder();
         var pagedResourceSupport = new PagedResourceSupport(startBuilder);

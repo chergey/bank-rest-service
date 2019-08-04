@@ -3,7 +3,6 @@ package org.elcer.accounts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.elcer.accounts.api.MockInitialContextFactory;
 import org.elcer.accounts.app.AppConfig;
 import org.elcer.accounts.app.LocatorUtils;
 import org.elcer.accounts.app.ObjectMapperProvider;
@@ -19,24 +18,19 @@ import org.glassfish.jersey.test.TestProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.jvnet.hk2.internal.DynamicConfigurationImpl;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.servlet.http.HttpServlet;
 import javax.ws.rs.core.Application;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -45,26 +39,14 @@ public abstract class BaseTest extends JerseyTest {
     private ServiceLocator locator;
 
 
-    @Mock
-    private Context context;
-
-    private static final EntityManagerFactory entityManagerFactory =
-            Persistence.createEntityManagerFactory(AppConfig.PU_NAME);
-
     static {
         System.setProperty(TestProperties.RECORD_LOG_LEVEL, Integer.toString(Level.FINE.intValue()));
     }
 
-    private void setupJndi() throws NamingException {
-        when(context.lookup("java:comp/env/" + AppConfig.PU_NAME)).thenReturn(entityManagerFactory);
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MockInitialContextFactory.class.getName());
-        MockInitialContextFactory.setGlobalContext(context);
-    }
 
     @Override
     @BeforeEach
     public void setUp() throws Exception {
-        setupJndi();
         super.setUp();
     }
 
@@ -84,7 +66,7 @@ public abstract class BaseTest extends JerseyTest {
 
     @Override
     protected Application configure() {
-        rectifyAppClassPath();
+        addTestClassPath();
 
         var appConfig = new ResourceConfig();
         appConfig.packages(LocatorUtils.PACKAGE_NAMES);
@@ -92,7 +74,7 @@ public abstract class BaseTest extends JerseyTest {
         var persistenceUnitBinder = new PersistenceUnitBinder(new HttpServlet() {
             @Override
             public String getInitParameter(String name) {
-                return "accounts";
+                return AppConfig.PU_NAME;
             }
 
             @Override
@@ -102,24 +84,30 @@ public abstract class BaseTest extends JerseyTest {
         });
 
         appConfig.register(persistenceUnitBinder);
+        injectAppBeans(appConfig);
+        return appConfig;
+    }
 
+    //add additional beans for tests
+    protected Set<Object> getMockBeans() {
+        return Collections.emptySet();
+    }
+
+    private void injectAppBeans(ResourceConfig appConfig) {
         appConfig.register(new AbstractBinder() {
             @Override
             protected void configure() {
                 locator = getServiceLocator(this);
-                install(LocatorUtils.bindServices(locator, false));
+                install(LocatorUtils.bindServices(locator, getMockBeans()));
             }
 
-
         });
-
-        return appConfig;
     }
 
     /*
     Ugly hack to add app classes (not test) to forked vm classpath
      */
-    private void rectifyAppClassPath() {
+    private void addTestClassPath() {
         var contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             var ucp = FieldUtils.readDeclaredField(contextClassLoader, "ucp", true);
@@ -132,13 +120,13 @@ public abstract class BaseTest extends JerseyTest {
             }
 
             if (!paths.contains("/classes")) {
-                String testClassPath = paths.stream().filter(s -> s.contains("test-classes")).findAny().orElseThrow(
-                        () -> new RuntimeException("test-classes path should be present on classpath"));
+                String testClassPath = paths.stream().filter(s -> s.contains("test-classes")).findAny()
+                        .orElseThrow(() -> new RuntimeException("test-classes path should be present on classpath"));
                 String appClassPath = testClassPath.replace("test-classes", "classes");
                 MethodUtils.invokeMethod(ucp, "addURL", new URL("file:/" + appClassPath));
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not set up test classpath", e);
         }
     }
 
@@ -148,12 +136,11 @@ public abstract class BaseTest extends JerseyTest {
     private ServiceLocator getServiceLocator(AbstractBinder binder) {
         ServiceLocator locator;
         try {
-            var dynamicConfiguration = (DynamicConfigurationImpl)
-                    MethodUtils.invokeMethod(binder, true, "configuration");
+            Object dynamicConfiguration = MethodUtils.invokeMethod(binder, true, "configuration");
             locator = (ServiceLocator) FieldUtils.readDeclaredField(dynamicConfiguration, "locator", true);
 
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Could not get service locator", e);
         }
         return locator;
     }
