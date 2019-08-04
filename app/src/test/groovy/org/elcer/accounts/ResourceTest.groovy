@@ -43,6 +43,8 @@ class ResourceTest extends BaseTest {
     @Test
     void "delete account with met requirements returns OK"() {
         def account = new Account(1L, "Mandy", 10000 as BigDecimal)
+        def url = "api/accounts"
+
         Mockito.when(accountRepository.findById(1L))
                 .thenReturn(account)
 
@@ -54,7 +56,7 @@ class ResourceTest extends BaseTest {
 
 
         //check for existence
-        Response response = target("api/accounts")
+        Response response = target(url)
                 .path(Integer.toString(1))
                 .request().get()
 
@@ -65,7 +67,7 @@ class ResourceTest extends BaseTest {
         Assertions.assertEquals(1L, account.getId())
 
         //delete
-        response = target("api/accounts")
+        response = target(url)
                 .path(Integer.toString(1))
                 .request()
                 .delete()
@@ -77,7 +79,7 @@ class ResourceTest extends BaseTest {
 
         // check for deletion
 
-        response = target("api/accounts")
+        response = target(url)
                 .path(Integer.toString(1))
                 .request()
                 .get()
@@ -93,18 +95,21 @@ class ResourceTest extends BaseTest {
 
     @Test
     void "replace account with met requirements returns OK"() {
+        def accountName = "Daniel"
+        def url = "api/accounts"
+
         Mockito.when(accountRepository.findById(transaction, 1))
                 .thenReturn(new Account(1L, "Mandy", 10000 as BigDecimal))
 
-        def mockAccount = new Account(1, "Daniel", 10000 as BigDecimal)
-        def account = new Account("Daniel", 10000 as BigDecimal)
+        def mockAccount = new Account(1, accountName, 10000 as BigDecimal)
         Mockito.when(accountRepository.save(transaction, mockAccount)).thenReturn(mockAccount)
         Mockito.when(accountRepository.beginTran()).thenReturn(transaction)
 
-        def response = target("api/accounts")
+        def bodyAccount = new Account(accountName, 10000 as BigDecimal)
+        def response = target(url)
                 .path(Integer.toString(1))
                 .request()
-                .put(Entity.json(account))
+                .put(Entity.json(bodyAccount))
 
         Account replacedAccount = response.readEntity(Account.class)
         assertHttpStatus(Response.Status.CREATED, response)
@@ -113,8 +118,8 @@ class ResourceTest extends BaseTest {
         Assertions.assertEquals(10000 as BigDecimal, replacedAccount.getBalance(),
                 "Account balance should be 10000")
 
-        Assertions.assertEquals("Daniel", replacedAccount.getName(),
-                "Account name should be Daniel")
+        Assertions.assertEquals(accountName, replacedAccount.getName(),
+                "Account name should be $accountName")
 
         URI link = createLink(response, 1 as String)
         Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
@@ -126,8 +131,10 @@ class ResourceTest extends BaseTest {
 
     @Test
     void "create account with met requirements returns OK"() {
-        def mockAccount = new Account(1, "Daniel", 1000 as BigDecimal)
-        def account = new Account("Daniel", 1000 as BigDecimal)
+        def accountName = "Daniel"
+
+        def mockAccount = new Account(1, accountName, 1000 as BigDecimal)
+        def account = new Account(accountName, 1000 as BigDecimal)
 
         Mockito.when(accountRepository.save(account)).thenReturn(mockAccount)
 
@@ -251,8 +258,10 @@ class ResourceTest extends BaseTest {
 
     @Test
     void "get account by id returns OK"() {
+        def accountName = "Daniel"
+
         Mockito.when(accountRepository.findById(1))
-                .thenReturn(new Account(1L, "Daniel", 10000 as BigDecimal))
+                .thenReturn(new Account(1L, accountName, 10000 as BigDecimal))
 
         Response response = target("api/accounts")
                 .path(Integer.toString(1))
@@ -263,7 +272,7 @@ class ResourceTest extends BaseTest {
 
         Assertions.assertNotNull(account, "No account in response")
         Assertions.assertEquals(1L, account.getId())
-
+        Assertions.assertEquals(accountName, account.getName())
 
         Assertions.assertFalse(response.getLinks().isEmpty(), "Should have links")
         Assertions.assertTrue(response.hasLink("self"), "Should have self link")
@@ -312,6 +321,7 @@ class ResourceTest extends BaseTest {
 
     @Test
     void "get 10 accounts returns OK"() {
+        def url = "api/accounts"
 
         def subSet1 = []
         for (int i = 0; i < 10; i++) {
@@ -346,7 +356,7 @@ class ResourceTest extends BaseTest {
                 .thenReturn(30L)
 
         //0-10
-        Response response = target("api/accounts")
+        Response response = target(url)
                 .queryParam("page", 0)
                 .queryParam("size", 10)
                 .request()
@@ -355,7 +365,7 @@ class ResourceTest extends BaseTest {
         assertPages(response, 10, Page.SELF, Page.NEXT, Page.LAST)
 
         //10-20
-        response = target("api/accounts")
+        response = target(url)
                 .queryParam("page", 1)
                 .queryParam("size", 10)
                 .request()
@@ -364,7 +374,7 @@ class ResourceTest extends BaseTest {
         assertPages(response, 10, Page.SELF, Page.NEXT, Page.LAST, Page.PREV)
 
         //20-30
-        response = target("api/accounts")
+        response = target(url)
                 .queryParam("page", 2)
                 .queryParam("size", 10)
                 .request()
@@ -373,7 +383,7 @@ class ResourceTest extends BaseTest {
         assertPages(response, 10, Page.SELF, Page.LAST, Page.PREV)
 
         //0-30
-        response = target("api/accounts")
+        response = target(url)
                 .queryParam("page", 0)
                 .queryParam("size", 30)
                 .request()

@@ -9,7 +9,7 @@ import java.util.List;
 
 class PagedResourceSupport {
 
-    private UriBuilder startBuilder;
+    private final UriBuilder startBuilder;
 
     PagedResourceSupport(UriBuilder startBuilder) {
         this.startBuilder = startBuilder;

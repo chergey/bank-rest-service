@@ -19,11 +19,10 @@ public class LinkDeserializer extends StdDeserializer<Link> {
         JsonNode node = p.getCodec().readTree(p);
         String href = node.get("href").asText();
         String rel = node.get("rel").asText();
-        JsonNode title1 = node.get("title");
-        String title = "";
-        if (title1 != null)
-            title = title1.asText();
-        Link link = JerseyLink.fromUri(href).rel(rel).title(title).build();
-        return link;
+        JsonNode title = node.get("title");
+        String titleText = "";
+        if (title != null)
+            titleText = title.asText();
+        return JerseyLink.fromUri(href).rel(rel).title(titleText).build();
     }
 }
