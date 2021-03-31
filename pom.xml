@@ -35,7 +35,7 @@
         <org.eclipselink.version>2.7.4</org.eclipselink.version>
         <shiro.version>1.4.1</shiro.version>
         <hk2.version>2.5.0</hk2.version>
-        <guava.version>28.0-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <commons.lang.version>3.9</commons.lang.version>
         <commons.collections.version>4.4</commons.collections.version>
 
